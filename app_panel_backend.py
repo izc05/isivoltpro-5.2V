@@ -1,11 +1,19 @@
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
-from flask import Flask, send_from_directory
 
-app = Flask(__name__, static_folder='.')
+class PanelRequestHandler(SimpleHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/':
+            self.path = '/index_panel.html'
+        return super().do_GET()
 
-@app.route('/')
-def index():
-    return send_from_directory('.', 'index_panel.html')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    server = ThreadingHTTPServer(('0.0.0.0', 8000), PanelRequestHandler)
+    print('Servidor iniciado en http://0.0.0.0:8000')
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        server.server_close()
