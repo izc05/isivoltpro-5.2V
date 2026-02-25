@@ -5,7 +5,7 @@ app = Flask(__name__, static_folder='.')
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
+    return send_from_directory('.', 'index_panel.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
