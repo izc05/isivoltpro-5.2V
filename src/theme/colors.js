@@ -1,14 +1,14 @@
 const colors = {
-  primary: "#001B3D",
-  primaryDark: "#000D24",
-  accent: "#56D364",
-  accentSoft: "#DDFBE5",
-  background: "#F8FAFC",
+  primary: "#0F2F4A",
+  primaryDark: "#071426",
+  accent: "#22D3EE",
+  accentSoft: "#CFFAFE",
+  background: "#F3F7FB",
   card: "#FFFFFF",
   text: "#0F172A",
-  danger: "#EF4444",
+  danger: "#F43F5E",
   warning: "#F59E0B",
-  info: "#3B82F6",
+  info: "#2563EB",
 };
 
 export default colors;

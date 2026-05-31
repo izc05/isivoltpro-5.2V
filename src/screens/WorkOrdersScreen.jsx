@@ -43,6 +43,15 @@ function WorkOrderIcon({ order }) {
   );
 }
 
+function getOrderStripe(order) {
+  if (order.type === "Correctiva") return "from-rose-400 to-amber-300";
+  if (order.specialty === "Climatizacion") return "from-sky-400 to-cyan-300";
+  if (order.specialty === "Electricidad") return "from-blue-400 to-amber-300";
+  if (order.specialty === "PCI") return "from-violet-400 to-fuchsia-300";
+  if (order.specialty === "Fontaneria") return "from-cyan-400 to-teal-300";
+  return "from-slate-300 to-cyan-300";
+}
+
 export default function WorkOrdersScreen({ workOrders, filter, setFilter, onOpenWorkOrder, onNewWorkOrder }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -70,7 +79,7 @@ export default function WorkOrdersScreen({ workOrders, filter, setFilter, onOpen
             <button className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/20" onClick={() => setSearchOpen((value) => !value)} aria-label="Buscar">
               <Search size={24} />
             </button>
-            <button className="grid h-12 w-12 place-items-center rounded-2xl bg-accent text-primaryDark" onClick={onNewWorkOrder} aria-label="Nueva OT">
+            <button className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300 to-amber-300 text-slate-950" onClick={onNewWorkOrder} aria-label="Nueva OT">
               <Plus size={28} />
             </button>
           </>
@@ -81,7 +90,7 @@ export default function WorkOrdersScreen({ workOrders, filter, setFilter, onOpen
             <button
               key={item}
               onClick={() => setFilter(item)}
-              className={item === filter ? "shrink-0 rounded-2xl bg-accent px-5 py-3 font-black text-primaryDark" : "shrink-0 rounded-2xl border border-white/35 px-5 py-3 font-black text-white"}
+              className={item === filter ? "shrink-0 rounded-2xl bg-cyan-300 px-5 py-3 font-black text-slate-950" : "shrink-0 rounded-2xl border border-white/35 px-5 py-3 font-black text-white"}
             >
               {item}
             </button>
@@ -110,6 +119,7 @@ export default function WorkOrdersScreen({ workOrders, filter, setFilter, onOpen
         {visible.map((order) => (
           <Card key={order.id} className="overflow-hidden p-0">
             <button className="w-full text-left" onClick={() => onOpenWorkOrder(order.id)}>
+              <div className={`h-2 bg-gradient-to-r ${getOrderStripe(order)}`} />
               {order.installationImageUrl ? (
                 <div className="relative h-24">
                   <img className="h-full w-full object-cover" src={order.installationImageUrl} alt="" />
@@ -130,10 +140,10 @@ export default function WorkOrdersScreen({ workOrders, filter, setFilter, onOpen
                     </div>
                     {!order.installationImageUrl ? <StatusBadge status={order.status} className="shrink-0" /> : null}
                   </div>
-                  <div className="mt-5 grid grid-cols-[1fr_1fr_auto] gap-2 border-t border-slate-100 pt-4 text-sm font-semibold text-slate-500">
-                    <span className="truncate">{order.location || order.installation}</span>
-                    <span className="truncate">{order.specialty}</span>
-                    <span className="inline-flex items-center gap-1">
+                  <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-slate-100 pt-4 text-sm font-semibold text-slate-500">
+                    <span className="shrink-0 max-w-full truncate">{order.location || order.installation}</span>
+                    <span className="shrink-0 max-w-full truncate">{order.specialty}</span>
+                    <span className="inline-flex shrink-0 items-center gap-1">
                       <CalendarDays size={16} />
                       {formatShortDate(order.createdAt)}
                     </span>

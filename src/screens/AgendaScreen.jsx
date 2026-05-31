@@ -45,11 +45,11 @@ export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrd
               <button
                 key={day.value}
                 onClick={() => setSelectedDate(day.value)}
-                className={day.selected ? "rounded-2xl bg-primaryDark px-1 py-3 text-accent shadow-soft" : "rounded-2xl px-1 py-3"}
+                className={day.selected ? "rounded-2xl bg-primaryDark px-1 py-3 text-cyan-200 shadow-soft" : "rounded-2xl px-1 py-3"}
               >
                 <span className="block text-xs font-black text-slate-500">{day.label}</span>
                 <strong className="mt-2 block text-lg font-black">{day.day}</strong>
-                {day.selected ? <span className="mx-auto mt-1 block h-2 w-2 rounded-full bg-accent" /> : null}
+                {day.selected ? <span className="mx-auto mt-1 block h-2 w-2 rounded-full bg-amber-300" /> : null}
               </button>
             ))}
           </div>
@@ -61,7 +61,7 @@ export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrd
         {agenda.length ? <div className="absolute bottom-36 left-8 top-20 w-px bg-slate-200" /> : null}
         {agenda.map((order) => (
           <div key={order.id} className="relative grid grid-cols-[28px_minmax(0,1fr)] gap-3">
-            <span className="mt-11 h-4 w-4 rounded-full border-4 border-appBg bg-accent" />
+            <span className="mt-11 h-4 w-4 rounded-full border-4 border-appBg bg-cyan-400" />
             <Card className="p-3">
               <button
                 className="grid w-full grid-cols-[66px_minmax(0,1fr)_18px] items-center gap-3 text-left"
@@ -100,7 +100,7 @@ export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrd
         ) : null}
         <div className="flex justify-end pr-1 pt-1">
           <button
-            className="grid h-16 w-16 place-items-center rounded-full bg-accent text-primaryDark shadow-soft"
+            className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-cyan-300 to-amber-300 text-slate-950 shadow-soft"
             onClick={onNewWorkOrder}
             aria-label="Nueva orden"
           >

@@ -1,18 +1,24 @@
 import { Building2, ChevronRight, DatabaseBackup, Download, Palette, RotateCcw, Scale, Settings, Upload, UserRoundCog, Wrench } from "lucide-react";
+import { useState } from "react";
 import Card from "../components/Card";
 import Header from "../components/Header";
 import Button from "../components/Button";
+import CompanyFormModal from "../components/CompanyFormModal";
+import TechniciansModal from "../components/TechniciansModal";
 
 const settings = [
-  { title: "Datos de empresa", text: "Logo, CIF, direccion y contacto", icon: Building2, active: false },
-  { title: "Tecnicos", text: "Equipo, especialidades y telefonos", icon: UserRoundCog, active: false },
-  { title: "Copia de seguridad", text: "Exportacion e importacion local", icon: DatabaseBackup, active: true },
-  { title: "Tema", text: "Color verde mantenimiento", icon: Palette, active: false },
-  { title: "Legal y privacidad", text: "Condiciones, permisos y datos locales", icon: Scale, active: false },
-  { title: "Version app", text: "IsiVoltPro Mantenimiento 1.0.0", icon: Wrench, active: true },
+  { id: "company", title: "Datos de empresa", text: "Logo, CIF, direccion y contacto", icon: Building2, active: true },
+  { id: "technicians", title: "Tecnicos", text: "Equipo, especialidades y telefonos", icon: UserRoundCog, active: true },
+  { id: "backup", title: "Copia de seguridad", text: "Exportacion e importacion local", icon: DatabaseBackup, active: true },
+  { id: "theme", title: "Tema", text: "Color verde mantenimiento", icon: Palette, active: false },
+  { id: "legal", title: "Legal y privacidad", text: "Condiciones, permisos y datos locales", icon: Scale, active: false },
+  { id: "version", title: "Version app", text: "IsiVoltPro Mantenimiento 1.0.0", icon: Wrench, active: true },
 ];
 
-export default function SettingsScreen({ settings: appSettings, onExportBackup, onImportBackup, onResetAllData }) {
+export default function SettingsScreen({ settings: appSettings, technicians, onExportBackup, onImportBackup, onResetAllData, onSaveCompanySettings, onSaveTechnician, onDeleteTechnician }) {
+  const [isEditingCompany, setIsEditingCompany] = useState(false);
+  const [isEditingTechnicians, setIsEditingTechnicians] = useState(false);
+
   const handleImport = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -62,7 +68,11 @@ export default function SettingsScreen({ settings: appSettings, onExportBackup, 
             <Card key={item.title} className="p-4">
               <button
                 className="flex w-full items-center gap-4 text-left"
-                onClick={() => item.active ? null : alert(`Utilidad pendiente: ${item.title.toLowerCase()} se configurara desde esta pantalla.`)}
+                onClick={() => {
+                  if (item.id === "company") return setIsEditingCompany(true);
+                  if (item.id === "technicians") return setIsEditingTechnicians(true);
+                  item.active ? null : alert(`Utilidad pendiente: ${item.title.toLowerCase()} se configurara desde esta pantalla.`);
+                }}
               >
                 <div className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-100 text-slate-800">
                   <Icon size={27} />
@@ -79,6 +89,26 @@ export default function SettingsScreen({ settings: appSettings, onExportBackup, 
           );
         })}
       </main>
+      
+      {isEditingCompany && (
+        <CompanyFormModal 
+          companyData={appSettings?.company} 
+          onClose={() => setIsEditingCompany(false)} 
+          onSave={(form) => {
+            onSaveCompanySettings(form);
+            setIsEditingCompany(false);
+          }} 
+        />
+      )}
+
+      {isEditingTechnicians && (
+        <TechniciansModal 
+          technicians={technicians} 
+          onClose={() => setIsEditingTechnicians(false)} 
+          onSave={onSaveTechnician}
+          onDelete={onDeleteTechnician}
+        />
+      )}
     </>
   );
 }

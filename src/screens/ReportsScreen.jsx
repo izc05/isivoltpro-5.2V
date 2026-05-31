@@ -2,16 +2,17 @@ import { BarChart3, Building2, ChevronRight, ClipboardCheck, Download, FileText,
 import Card from "../components/Card";
 import Header from "../components/Header";
 import StatusBadge from "../components/StatusBadge";
+import { generateCorrectiveReport, generateInstallationReport, generateMonthlyReport, generatePreventiveReport } from "../services/pdfService";
 
 function percent(value, total) {
   if (!total) return 0;
   return Math.round((value / total) * 100);
 }
 
-function ReportCard({ icon: Icon, tone, title, text, metric, detail, children }) {
+function ReportCard({ icon: Icon, tone, title, text, metric, detail, onClick, children }) {
   return (
     <Card className="overflow-hidden p-0">
-      <button className="w-full text-left" onClick={() => alert(`Utilidad pendiente: se preparara ${title.toLowerCase()} con exportacion y vista PDF.`)}>
+      <button className="w-full text-left" onClick={onClick}>
         <div className="grid grid-cols-[74px_minmax(0,1fr)_24px] gap-4 p-4">
           <div className={`grid h-16 w-16 place-items-center rounded-2xl ${tone}`}>
             <Icon size={31} />
@@ -39,7 +40,7 @@ function ReportCard({ icon: Icon, tone, title, text, metric, detail, children })
   );
 }
 
-export default function ReportsScreen({ workOrders = [], installations = [] }) {
+export default function ReportsScreen({ workOrders = [], installations = [], settings }) {
   const corrective = workOrders.filter((order) => order.type === "Correctiva");
   const preventive = workOrders.filter((order) => order.type === "Preventiva");
   const completed = workOrders.filter((order) => order.status === "Completada" || order.status === "Cerrada");
@@ -72,19 +73,19 @@ export default function ReportsScreen({ workOrders = [], installations = [] }) {
       </Header>
 
       <main className="space-y-5 px-5 pb-32 pt-6">
-        <Card className="bg-primaryDark text-white">
+        <Card className="bg-[radial-gradient(circle_at_top_left,#155E75,#173B72_50%,#071426)] text-white">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-black uppercase text-accent">Panel del mes</p>
+              <p className="text-sm font-black uppercase text-cyan-200">Panel del mes</p>
               <h2 className="mt-2 text-2xl font-black leading-tight">Actividad de mantenimiento</h2>
               <p className="mt-2 font-semibold text-white/70">Resumen rapido de correctivos, preventivos y centros con mas trabajo.</p>
             </div>
-            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/10 text-accent">
+            <div className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-white/10 text-amber-200">
               <TrendingUp size={30} />
             </div>
           </div>
           <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
-            <div className="h-full rounded-full bg-accent" style={{ width: `${completion}%` }} />
+            <div className="h-full rounded-full bg-gradient-to-r from-cyan-300 via-sky-300 to-amber-300" style={{ width: `${completion}%` }} />
           </div>
           <div className="mt-3 flex items-center justify-between text-sm font-black text-white/75">
             <span>{completed.length} cerradas</span>
@@ -122,6 +123,7 @@ export default function ReportsScreen({ workOrders = [], installations = [] }) {
             text="Intervenciones, tiempos, evidencias y estado de incidencias."
             metric={corrective.length}
             detail="intervenciones"
+            onClick={() => generateCorrectiveReport(workOrders, settings)}
           >
             <StatusBadge status={corrective.length ? "Listo" : "Sin datos"} />
           </ReportCard>
@@ -133,19 +135,21 @@ export default function ReportsScreen({ workOrders = [], installations = [] }) {
             text="Planes ejecutados, tareas pendientes y cumplimiento previsto."
             metric={`${percent(preventive.filter((order) => order.status === "Completada").length, preventive.length)}%`}
             detail="cumplimiento"
+            onClick={() => generatePreventiveReport(workOrders, settings)}
           >
             <StatusBadge status={preventive.length ? "Listo" : "Sin datos"} />
           </ReportCard>
 
           <ReportCard
             icon={BarChart3}
-            tone="bg-green-100 text-green-700"
+            tone="bg-amber-100 text-amber-700"
             title="Informe mensual"
             text="Resumen operativo del mes con volumen, cierre y prioridades."
             metric={`${completion}%`}
             detail="ordenes cerradas"
+            onClick={() => generateMonthlyReport(workOrders, settings)}
           >
-            <div className="flex items-center gap-1 rounded-full bg-green-50 px-3 py-2 text-sm font-black text-green-700">
+            <div className="flex items-center gap-1 rounded-full bg-amber-50 px-3 py-2 text-sm font-black text-amber-700">
               <TimerReset size={16} />
               Mes actual
             </div>
@@ -158,6 +162,7 @@ export default function ReportsScreen({ workOrders = [], installations = [] }) {
             text="Estado de activos, OTs abiertas y actividad por centro."
             metric={topInstallation?.orderCount || 0}
             detail={topInstallation?.name || "sin centro"}
+            onClick={() => generateInstallationReport(workOrders, topInstallation, settings)}
           >
             <StatusBadge status={topInstallation?.status || "Sin datos"} />
           </ReportCard>
@@ -169,6 +174,7 @@ export default function ReportsScreen({ workOrders = [], installations = [] }) {
             text="Descarga preparada para revisar o compartir datos operativos."
             metric="JSON"
             detail="formato local"
+            onClick={() => alert("Utilidad pendiente: Usa la exportacion en Ajustes por ahora.")}
           >
             <FileText className="text-slate-600" size={24} />
           </ReportCard>

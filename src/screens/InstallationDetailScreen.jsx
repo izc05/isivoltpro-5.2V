@@ -4,6 +4,7 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import Header from "../components/Header";
 import InstallationFormModal from "../components/InstallationFormModal";
+import AssetFormModal from "../components/AssetFormModal";
 import StatusBadge from "../components/StatusBadge";
 import { formatDateTime } from "../utils/dates";
 
@@ -150,8 +151,9 @@ function OrdersSheet({ workOrders, onClose }) {
   );
 }
 
-export default function InstallationDetailScreen({ installation, assets = [], workOrders = [], onBack, onSaveInstallation, onDeleteInstallation, onCreateWorkOrder }) {
+export default function InstallationDetailScreen({ installation, assets = [], workOrders = [], onBack, onSaveInstallation, onDeleteInstallation, onSaveAsset, onCreateWorkOrder }) {
   const [editing, setEditing] = useState(false);
+  const [editingAsset, setEditingAsset] = useState(false);
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [ordersOpen, setOrdersOpen] = useState(false);
   if (!installation) return null;
@@ -194,7 +196,7 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
             {installation.imageUrl ? (
               <img className="h-32 w-full rounded-3xl object-cover" src={installation.imageUrl} alt="" />
             ) : (
-              <div className="grid h-32 place-items-center rounded-3xl bg-[radial-gradient(circle_at_top_left,#06315D,#001B3D)] text-accent">
+              <div className="grid h-32 place-items-center rounded-3xl bg-[radial-gradient(circle_at_top_left,#155E75,#173B72)] text-cyan-200">
                 <ShieldCheck size={50} />
               </div>
             )}
@@ -214,7 +216,7 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
           <Button icon={Plus} onClick={onCreateWorkOrder}>
             Crear OT
           </Button>
-          <Button icon={PackagePlus} variant="outline" onClick={() => alert("Utilidad pendiente: aqui se podran dar de alta equipos, maquinas y activos de la instalacion.")}>
+          <Button icon={PackagePlus} variant="outline" onClick={() => setEditingAsset(true)}>
             Añadir activo
           </Button>
           <Button icon={ShieldCheck} variant="dark" onClick={() => setSelectedSpecialty("Todos")}>
@@ -301,6 +303,16 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
           </Card>
         </section>
         {editing ? <InstallationFormModal installation={installation} onClose={() => setEditing(false)} onSave={saveInstallation} /> : null}
+        {editingAsset ? (
+          <AssetFormModal
+            asset={null}
+            onClose={() => setEditingAsset(false)}
+            onSave={(form) => {
+              onSaveAsset(null, { ...form, installationId: installation.id });
+              setEditingAsset(false);
+            }}
+          />
+        ) : null}
         {selectedSpecialty ? (
           <SpecialtySheet
             specialty={selectedSpecialty}

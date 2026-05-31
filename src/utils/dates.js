@@ -32,7 +32,17 @@ export function formatLongDay(value) {
 }
 
 export function toDateInputValue(value) {
-  return new Date(value).toISOString().slice(0, 10);
+  const date = value ? new Date(value) : new Date();
+  if (Number.isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function buildLocalDateTime(dateValue, timeValue = "08:45") {
+  const date = dateValue || toDateInputValue(new Date());
+  return `${date}T${timeValue || "08:45"}:00`;
 }
 
 export function getWeekDays(selectedDate) {

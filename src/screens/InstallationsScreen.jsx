@@ -21,7 +21,7 @@ function InstallationVisual({ visual }) {
   };
   const Icon = icons[visual] || Building2;
   return (
-    <div className="grid h-28 w-28 shrink-0 place-items-center rounded-3xl bg-[radial-gradient(circle_at_top_left,#06315D,#001B3D)] text-accent">
+    <div className="grid h-28 w-28 shrink-0 place-items-center rounded-3xl bg-[radial-gradient(circle_at_top_left,#155E75,#173B72)] text-cyan-200">
       <Icon size={46} strokeWidth={2.2} />
     </div>
   );
@@ -49,6 +49,17 @@ function matchesQuery(installation, query) {
   ]
     .filter(Boolean)
     .some((value) => String(value).toLowerCase().includes(normalized));
+}
+
+function getInstallationStripe(type) {
+  const tones = {
+    hospital: "from-sky-400 to-cyan-300",
+    centro_especialidades: "from-violet-400 to-sky-300",
+    residencia: "from-amber-300 to-orange-300",
+    polideportivo: "from-emerald-300 to-cyan-300",
+    colegio: "from-fuchsia-300 to-violet-300",
+  };
+  return tones[type] || "from-cyan-300 to-sky-300";
 }
 
 export default function InstallationsScreen({ installations, assets, workOrders, onOpenInstallation, onSaveInstallation, onDeleteInstallation }) {
@@ -89,7 +100,7 @@ export default function InstallationsScreen({ installations, assets, workOrders,
             <button className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/20" onClick={() => setSearchOpen((value) => !value)} aria-label="Buscar">
               {searchOpen ? <X size={24} /> : <Search size={24} />}
             </button>
-            <button className="grid h-12 w-12 place-items-center rounded-2xl bg-accent text-primaryDark" onClick={() => setEditingInstallation({})} aria-label="Nueva instalacion">
+            <button className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300 to-amber-300 text-slate-950" onClick={() => setEditingInstallation({})} aria-label="Nueva instalacion">
               <Plus size={26} />
             </button>
           </>
@@ -122,8 +133,8 @@ export default function InstallationsScreen({ installations, assets, workOrders,
                   onClick={() => setActiveFilter(filter.id)}
                   className={
                     filter.id === activeFilter
-                      ? "shrink-0 rounded-2xl bg-accent px-6 py-3 font-black text-primaryDark"
-                      : "shrink-0 rounded-2xl border border-primary/30 bg-white px-6 py-3 font-black text-primary"
+                      ? "shrink-0 rounded-2xl bg-gradient-to-r from-cyan-300 to-sky-300 px-6 py-3 font-black text-slate-950"
+                      : "shrink-0 rounded-2xl border border-sky-200 bg-white px-6 py-3 font-black text-primary"
                   }
                 >
                   {filter.label}
@@ -136,8 +147,9 @@ export default function InstallationsScreen({ installations, assets, workOrders,
 
         <div className="space-y-4">
           {visibleInstallations.map((installation) => (
-            <Card key={installation.id} className="p-4">
-              <div className="flex w-full items-center gap-4 text-left">
+            <Card key={installation.id} className="overflow-hidden p-0">
+              <div className={`h-2 bg-gradient-to-r ${getInstallationStripe(installation.type)}`} />
+              <div className="flex w-full items-center gap-4 p-4 text-left">
                 {installation.imageUrl ? (
                   <button onClick={() => onOpenInstallation(installation.id)} aria-label={`Imagen de ${installation.name}`}>
                     <img className="h-28 w-28 shrink-0 rounded-3xl object-cover" src={installation.imageUrl} alt="" />
@@ -169,7 +181,7 @@ export default function InstallationsScreen({ installations, assets, workOrders,
                       <button className="grid h-9 w-9 place-items-center rounded-xl bg-red-50 text-red-700" onClick={() => askDelete(installation)} aria-label={`Borrar ${installation.name}`}>
                         <Trash2 size={17} />
                       </button>
-                      <button className="grid h-9 w-9 place-items-center rounded-xl bg-accentSoft text-green-800" onClick={() => onOpenInstallation(installation.id)} aria-label={`Entrar en ${installation.name}`}>
+                      <button className="grid h-9 w-9 place-items-center rounded-xl bg-cyan-100 text-cyan-800" onClick={() => onOpenInstallation(installation.id)} aria-label={`Entrar en ${installation.name}`}>
                         <ChevronRight size={20} />
                       </button>
                     </div>

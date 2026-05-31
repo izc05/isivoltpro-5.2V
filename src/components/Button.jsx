@@ -2,9 +2,9 @@ import { classNames } from "../utils/classNames";
 
 export default function Button({ children, icon: Icon, variant = "primary", className = "", ...props }) {
   const variants = {
-    primary: "bg-gradient-to-r from-accent to-green-400 text-primaryDark shadow-soft",
-    dark: "bg-primaryDark text-accent shadow-soft",
-    outline: "border border-accent bg-white text-primary",
+    primary: "bg-gradient-to-r from-cyan-300 via-sky-300 to-amber-300 text-slate-950 shadow-soft",
+    dark: "bg-primaryDark text-cyan-200 shadow-soft",
+    outline: "border border-cyan-300 bg-white text-primary",
     ghost: "bg-white/10 text-white ring-1 ring-white/20",
     danger: "bg-danger text-white",
   };

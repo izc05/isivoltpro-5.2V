@@ -20,6 +20,7 @@ import {
   saveWorkOrders,
 } from "./services/storage";
 import { createId, generateWorkOrderNumber, nowIso } from "./utils/ids";
+import { buildLocalDateTime } from "./utils/dates";
 
 const tabScreens = ["home", "installations", "workOrders", "agenda", "reports", "settings"];
 
@@ -51,7 +52,7 @@ const SPECIALTY_LABELS = {
   climatizacion: "Climatizacion",
   pci: "PCI",
   general: "General",
-  mecanica: "General",
+  mecanica: "Mecanica",
 };
 
 const PRIORITY_LABELS = {
@@ -85,7 +86,7 @@ const SPECIALTY_VALUES = {
   Climatizacion: "climatizacion",
   PCI: "pci",
   General: "general",
-  Mecanica: "general",
+  Mecanica: "mecanica",
 };
 
 const PRIORITY_VALUES = {
@@ -230,7 +231,7 @@ export default function App() {
   const createWorkOrder = (form) => {
     const installation = installations.find((item) => item.id === form.installationId) || installations[0];
     const technician = technicians.find((item) => item.name === form.technician || item.id === form.technician);
-    const scheduledAt = `${form.date || new Date().toISOString().slice(0, 10)}T${form.time || "08:45"}:00.000Z`;
+    const scheduledAt = buildLocalDateTime(form.date, form.time);
     const createdAt = nowIso();
     const created = {
       id: createId("ot"),
@@ -260,6 +261,46 @@ export default function App() {
     setSelectedWorkOrderId(created.id);
     setPreviousScreen("workOrders");
     setScreen("workOrderDetail");
+  };
+
+  const saveAsset = (id, form) => {
+    const timestamp = nowIso();
+    if (id) {
+      setAssets((current) =>
+        current.map((asset) =>
+          asset.id === id ? { ...asset, ...form, updatedAt: timestamp } : asset
+        )
+      );
+      return;
+    }
+
+    const created = {
+      id: createId("ast"),
+      ...form,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+    setAssets((current) => [created, ...current]);
+  };
+
+  const saveCompanySettings = (form) => {
+    setSettings((current) => ({ ...current, company: form }));
+  };
+
+  const saveTechnician = (id, form) => {
+    const timestamp = nowIso();
+    if (id) {
+      setTechnicians((current) =>
+        current.map((t) => (t.id === id ? { ...t, ...form, updatedAt: timestamp } : t))
+      );
+      return;
+    }
+    const created = { id: createId("tech"), ...form, createdAt: timestamp, updatedAt: timestamp };
+    setTechnicians((current) => [created, ...current]);
+  };
+
+  const deleteTechnician = (id) => {
+    setTechnicians((current) => current.filter((t) => t.id !== id));
   };
 
   const saveInstallation = (id, form) => {
@@ -335,7 +376,7 @@ export default function App() {
               actionTaken: form.actionTaken ?? order.actionTaken,
               observations: form.observations ?? order.observations,
               timeSpentMinutes: Number(form.timeSpentMinutes || order.timeSpentMinutes || 0),
-              scheduledAt: form.date ? `${form.date}T${form.time || "08:45"}:00.000Z` : order.scheduledAt,
+              scheduledAt: form.date ? buildLocalDateTime(form.date, form.time) : order.scheduledAt,
               initialPhotos: form.initialPhotos || order.initialPhotos || [],
               finalPhotos: form.finalPhotos || order.finalPhotos || [],
               completedAt: (STATUS_VALUES[form.status] || order.status) === "completada" ? order.completedAt || nowIso() : order.completedAt,
@@ -409,6 +450,7 @@ export default function App() {
             onBack={() => setScreen("installations")}
             onSaveInstallation={saveInstallation}
             onDeleteInstallation={deleteInstallation}
+            onSaveAsset={saveAsset}
             onCreateWorkOrder={(defaults = {}) => {
               setNewWorkOrderDefaults({ installationId: selectedInstallation?.id || "", ...defaults });
               setPreviousScreen("installationDetail");
@@ -459,13 +501,17 @@ export default function App() {
             }}
           />
         )}
-        {screen === "reports" && <ReportsScreen workOrders={displayWorkOrders} installations={displayInstallations} />}
+        {screen === "reports" && <ReportsScreen workOrders={displayWorkOrders} installations={displayInstallations} settings={settings} />}
         {screen === "settings" && (
           <SettingsScreen
             settings={settings}
+            technicians={technicians}
             onExportBackup={exportBackup}
             onImportBackup={handleImportBackup}
             onResetAllData={() => reloadData(resetAllData())}
+            onSaveCompanySettings={saveCompanySettings}
+            onSaveTechnician={saveTechnician}
+            onDeleteTechnician={deleteTechnician}
           />
         )}
         {screen !== "newWorkOrder" && <BottomNav current={activeTab} onNavigate={navigate} />}

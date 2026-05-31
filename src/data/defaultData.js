@@ -4,7 +4,7 @@ const createdAt = "2026-05-26T08:00:00.000Z";
 
 export const defaultSettings = {
   companyName: "IsiVoltPro Mantenimiento",
-  theme: "navy-green",
+  theme: "navy-cyan",
   version: "1.0.0",
   createdAt,
   updatedAt: createdAt,

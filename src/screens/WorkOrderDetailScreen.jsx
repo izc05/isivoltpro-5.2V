@@ -288,7 +288,7 @@ export default function WorkOrderDetailScreen({ order, installations, technician
           {order.actionTaken ? (
             <>
               <h2 className="mt-5 text-lg font-black">Trabajo realizado</h2>
-              <p className="mt-3 rounded-2xl bg-green-50 p-4 font-semibold leading-relaxed text-slate-700">{order.actionTaken}</p>
+              <p className="mt-3 rounded-2xl bg-cyan-50 p-4 font-semibold leading-relaxed text-slate-700">{order.actionTaken}</p>
             </>
           ) : null}
           {order.observations ? (
@@ -312,17 +312,18 @@ export default function WorkOrderDetailScreen({ order, installations, technician
           </div>
         </Card>
 
-        <div className="sticky bottom-28 z-30 grid grid-cols-3 gap-3 rounded-[28px] bg-appBg/95 py-3 backdrop-blur">
-          <Button icon={UserPlus} variant="outline" onClick={() => setEditing(true)}>
-            Asignar
-          </Button>
-          <Button icon={Play} variant="dark" onClick={() => onUpdateStatus(order.id, "En curso")}>
-            En curso
-          </Button>
-          <Button icon={CheckCircle2} onClick={() => onUpdateStatus(order.id, "Completada")}>
-            Completar
-          </Button>
-        </div>
+        {order.rawStatus !== "completada" && order.rawStatus !== "cerrada" && (
+          <div className="sticky bottom-28 z-30 grid grid-cols-2 gap-3 rounded-[28px] bg-appBg/95 py-3 backdrop-blur">
+            {order.rawStatus !== "en_curso" && (
+              <Button icon={Play} variant="dark" onClick={() => onUpdateStatus(order.id, "En curso")}>
+                En curso
+              </Button>
+            )}
+            <Button icon={CheckCircle2} className={order.rawStatus === "en_curso" ? "col-span-2" : ""} onClick={() => onUpdateStatus(order.id, "Completada")}>
+              Completar
+            </Button>
+          </div>
+        )}
       </main>
 
       {editing ? (

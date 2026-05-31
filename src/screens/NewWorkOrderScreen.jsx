@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import Header from "../components/Header";
+import { toDateInputValue } from "../utils/dates";
 
 function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -34,7 +35,7 @@ export default function NewWorkOrderScreen({ installations, technicians, default
     location: "Planta Baja - Area de Bombas",
     technician: technicians[0]?.name || "",
     priority: "Alta",
-    date: new Date().toISOString().slice(0, 10),
+    date: toDateInputValue(new Date()),
     time: "08:45",
     title: "Incidencia en bomba principal",
     description: "Fuga de agua detectada en la conexion de la bomba principal. Requiere revision y reparacion inmediata.",
@@ -65,14 +66,14 @@ export default function NewWorkOrderScreen({ installations, technicians, default
 
   return (
     <>
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#07396B_0%,#001B3D_48%,#000D24_100%)] text-white">
+      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#155E75_0%,#173B72_48%,#071426_100%)] text-white">
         <Header
           title="Nueva orden"
           subtitle="Crear OT"
           compact
           onBack={onBack}
           actions={
-            <button className="grid h-12 w-12 place-items-center rounded-2xl bg-accent text-primaryDark" onClick={() => onCreate(form)} aria-label="Crear OT">
+            <button className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-cyan-300 to-amber-300 text-slate-950" onClick={() => onCreate(form)} aria-label="Crear OT">
               <Check size={26} />
             </button>
           }

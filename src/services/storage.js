@@ -21,7 +21,14 @@ function readJson(key, fallback) {
 }
 
 function writeJson(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (error) {
+    console.error(`Error guardando ${key}`, error);
+    if (error.name === "QuotaExceededError" || error.name === "NS_ERROR_DOM_QUOTA_REACHED") {
+      alert("Error: El almacenamiento local esta lleno. Has subido demasiadas fotos de alta resolucion y la memoria del navegador se ha agotado. Elimina algunas fotos antiguas o usa imagenes mas pequeñas.");
+    }
+  }
 }
 
 function seedIfMissing(key, value) {
