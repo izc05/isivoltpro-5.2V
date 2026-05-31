@@ -1,11 +1,13 @@
-import { BriefcaseBusiness, CalendarDays, ChevronRight, Droplet, Plus, Search, ShieldCheck, Snowflake, Wrench, Zap } from "lucide-react";
+import { BriefcaseBusiness, CalendarDays, ChevronRight, ClipboardCheck, Droplet, Plus, Search, ShieldCheck, Snowflake, Wrench, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 import Card from "../components/Card";
 import Header from "../components/Header";
 import StatusBadge from "../components/StatusBadge";
 import { formatShortDate } from "../utils/dates";
 
-const filters = ["Todas", "Preventivas", "Correctivas", "Pendientes", "Completadas"];
+const filters = ["Todas", "Abiertas", "Correctivas", "Preventivas", "Visitas", "Cerradas"];
+const openStatuses = new Set(["Nueva", "Pendiente", "Asignada", "En curso", "Observada", "Demorada"]);
+const closedStatuses = new Set(["Completada", "Cerrada"]);
 
 function matchesQuery(order, query) {
   const normalized = query.trim().toLowerCase();
@@ -34,8 +36,8 @@ function WorkOrderIcon({ order }) {
     PCI: { icon: ShieldCheck, tone: "bg-purple-100 text-purple-700" },
   };
   const specialty = specialties[order.specialty] || { icon: BriefcaseBusiness, tone: "bg-slate-100 text-slate-700" };
-  const Icon = order.type === "Correctiva" ? Wrench : specialty.icon;
-  const color = order.type === "Correctiva" ? "bg-red-100 text-danger" : specialty.tone;
+  const Icon = order.type === "Correctiva" ? Wrench : order.type === "Parte de visita" ? ClipboardCheck : specialty.icon;
+  const color = order.type === "Correctiva" ? "bg-red-100 text-danger" : order.type === "Parte de visita" ? "bg-emerald-100 text-emerald-700" : specialty.tone;
   return (
     <div className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl ${color}`}>
       <Icon size={30} strokeWidth={2.5} />
@@ -44,6 +46,7 @@ function WorkOrderIcon({ order }) {
 }
 
 function getOrderStripe(order) {
+  if (order.type === "Parte de visita") return "from-emerald-400 to-cyan-300";
   if (order.type === "Correctiva") return "from-rose-400 to-amber-300";
   if (order.specialty === "Climatizacion") return "from-sky-400 to-cyan-300";
   if (order.specialty === "Electricidad") return "from-blue-400 to-amber-300";
@@ -55,15 +58,17 @@ function getOrderStripe(order) {
 export default function WorkOrdersScreen({ workOrders, filter, setFilter, onOpenWorkOrder, onNewWorkOrder }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const openCount = workOrders.filter((order) => openStatuses.has(order.status)).length;
   const visible = useMemo(
     () =>
       workOrders.filter((order) => {
         const matchesFilter =
           filter === "Todas" ||
-          (filter === "Preventivas" && order.type === "Preventiva") ||
+          (filter === "Abiertas" && openStatuses.has(order.status)) ||
           (filter === "Correctivas" && order.type === "Correctiva") ||
-          (filter === "Pendientes" && order.status === "Pendiente") ||
-          (filter === "Completadas" && order.status === "Completada");
+          (filter === "Preventivas" && order.type === "Preventiva") ||
+          (filter === "Visitas" && order.type === "Parte de visita") ||
+          (filter === "Cerradas" && closedStatuses.has(order.status));
         return matchesFilter && matchesQuery(order, query);
       }),
     [filter, query, workOrders]
@@ -73,7 +78,7 @@ export default function WorkOrdersScreen({ workOrders, filter, setFilter, onOpen
     <>
       <Header
         title="Ordenes de trabajo"
-        subtitle={`${workOrders.length} activas`}
+        subtitle={`${openCount} abiertas de ${workOrders.length}`}
         actions={
           <>
             <button className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10 ring-1 ring-white/20" onClick={() => setSearchOpen((value) => !value)} aria-label="Buscar">

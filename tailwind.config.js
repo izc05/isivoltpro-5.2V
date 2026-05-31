@@ -1,7 +1,7 @@
-import colors from "./src/theme/colors.js";
+import colors from "./src/theme/colors.ts";
 
 export default {
-  content: ["./index.html", "./src/**/*.{js,jsx}"],
+  content: ["./index.html", "./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
       colors: {

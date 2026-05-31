@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import { autoTable } from "jspdf-autotable";
 import { formatShortDate } from "../utils/dates";
 
 function getBasePdf(title, settings) {
@@ -36,6 +36,13 @@ function getBasePdf(title, settings) {
   return doc;
 }
 
+function materialSummary(materials = []) {
+  const items = materials
+    .map((item) => [item.quantity, item.type || item.name].filter(Boolean).join(" x "))
+    .filter(Boolean);
+  return items.length ? items.join(", ") : "-";
+}
+
 export function generateCorrectiveReport(workOrders, settings) {
   const doc = getBasePdf("Partes Correctivos", settings);
   const correctives = workOrders.filter((o) => o.type === "Correctiva");
@@ -46,12 +53,13 @@ export function generateCorrectiveReport(workOrders, settings) {
     formatShortDate(order.createdAt),
     order.status,
     order.timeSpentMinutes ? `${order.timeSpentMinutes} min` : "-",
+    materialSummary(order.materials),
     order.title
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: 60,
-    head: [["OT", "Instalacion", "Fecha", "Estado", "Tiempo", "Asunto"]],
+    head: [["OT", "Instalacion", "Fecha", "Estado", "Tiempo", "Material", "Asunto"]],
     body,
     theme: "striped",
     headStyles: { fillColor: [15, 118, 110] }, // cyan-700
@@ -71,12 +79,13 @@ export function generatePreventiveReport(workOrders, settings) {
     formatShortDate(order.createdAt),
     order.status,
     order.specialty,
+    materialSummary(order.materials),
     order.title
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: 60,
-    head: [["OT", "Instalacion", "Fecha", "Estado", "Especialidad", "Asunto"]],
+    head: [["OT", "Instalacion", "Fecha", "Estado", "Especialidad", "Material", "Asunto"]],
     body,
     theme: "striped",
     headStyles: { fillColor: [3, 105, 161] }, // sky-700
@@ -84,6 +93,32 @@ export function generatePreventiveReport(workOrders, settings) {
   });
 
   doc.save("informe_preventivos.pdf");
+}
+
+export function generateVisitReport(workOrders, settings) {
+  const doc = getBasePdf("Partes de Visita", settings);
+  const visits = workOrders.filter((o) => o.type === "Parte de visita");
+
+  const body = visits.map((order) => [
+    order.number,
+    order.installation,
+    formatShortDate(order.createdAt),
+    order.status,
+    order.technician || "Sin asignar",
+    materialSummary(order.materials),
+    order.title
+  ]);
+
+  autoTable(doc, {
+    startY: 60,
+    head: [["OT", "Instalacion", "Fecha", "Estado", "Tecnico", "Material", "Asunto"]],
+    body,
+    theme: "striped",
+    headStyles: { fillColor: [4, 120, 87] },
+    styles: { fontSize: 9 }
+  });
+
+  doc.save("partes_visita.pdf");
 }
 
 export function generateMonthlyReport(workOrders, settings) {
@@ -95,12 +130,13 @@ export function generateMonthlyReport(workOrders, settings) {
     order.installation,
     order.status,
     order.technician || "Sin asignar",
+    materialSummary(order.materials),
     formatShortDate(order.completedAt || order.createdAt)
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: 60,
-    head: [["OT", "Tipo", "Instalacion", "Estado", "Tecnico", "Fecha"]],
+    head: [["OT", "Tipo", "Instalacion", "Estado", "Tecnico", "Material", "Fecha"]],
     body,
     theme: "striped",
     headStyles: { fillColor: [180, 83, 9] }, // amber-700
@@ -119,12 +155,13 @@ export function generateInstallationReport(workOrders, installation, settings) {
     order.type,
     order.status,
     order.specialty,
+    materialSummary(order.materials),
     order.title
   ]);
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: 60,
-    head: [["OT", "Tipo", "Estado", "Especialidad", "Asunto"]],
+    head: [["OT", "Tipo", "Estado", "Especialidad", "Material", "Asunto"]],
     body,
     theme: "striped",
     headStyles: { fillColor: [109, 40, 217] }, // violet-700

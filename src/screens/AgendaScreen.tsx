@@ -1,4 +1,4 @@
-import { CalendarPlus, ChevronRight, MapPin, Plus, Settings, Zap } from "lucide-react";
+import { CalendarPlus, ChevronRight, ClipboardCheck, MapPin, Plus, Settings, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 import Card from "../components/Card";
 import Header from "../components/Header";
@@ -6,12 +6,7 @@ import StatusBadge from "../components/StatusBadge";
 import { formatLongDay, formatMonthYear, getWeekDays, toDateInputValue } from "../utils/dates";
 
 export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrder }) {
-  const latestScheduled =
-    workOrders
-      .map((order) => order.scheduledAt || order.createdAt)
-      .filter(Boolean)
-      .sort((a, b) => new Date(b) - new Date(a))[0] || new Date();
-  const [selectedDate, setSelectedDate] = useState(toDateInputValue(latestScheduled));
+  const [selectedDate, setSelectedDate] = useState(toDateInputValue(new Date()));
   const days = getWeekDays(selectedDate);
   const agenda = useMemo(
     () =>
@@ -22,7 +17,7 @@ export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrd
   );
 
   const getAgendaTone = (order) =>
-    order.type === "Correctiva" ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-700";
+    order.type === "Correctiva" ? "bg-red-100 text-red-600" : order.type === "Parte de visita" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700";
 
   return (
     <>
@@ -69,7 +64,7 @@ export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrd
               >
                 <div className="flex flex-col items-center gap-2">
                   <div className={`grid h-14 w-14 place-items-center rounded-2xl ${getAgendaTone(order)}`}>
-                    {order.type === "Correctiva" ? <Zap size={30} /> : <CalendarPlus size={30} />}
+                    {order.type === "Correctiva" ? <Zap size={30} /> : order.type === "Parte de visita" ? <ClipboardCheck size={30} /> : <CalendarPlus size={30} />}
                   </div>
                   <strong className="text-base font-black text-primaryDark">{order.time}</strong>
                 </div>
@@ -80,7 +75,7 @@ export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrd
                   </div>
                   <p className="mt-1 truncate font-semibold text-slate-600">{order.title}</p>
                   <div className="mt-2 flex min-w-0 items-center gap-2">
-                    <StatusBadge status={order.type === "Correctiva" ? "Correctivo" : "Preventivo"} className="shrink-0 text-xs" />
+                    <StatusBadge status={order.type === "Parte de visita" ? "Visita" : order.type === "Correctiva" ? "Correctivo" : "Preventivo"} className="shrink-0 text-xs" />
                     <span className="flex min-w-0 items-center gap-1 text-sm font-semibold text-slate-500">
                       <MapPin size={16} className="shrink-0 text-blue-600" />
                       <span className="truncate">{order.installation}</span>

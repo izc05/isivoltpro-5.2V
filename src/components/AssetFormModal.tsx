@@ -1,4 +1,4 @@
-import { Check, ClipboardList, Cpu, MapPin, Tag, Wrench, X } from "lucide-react";
+import { Check, ClipboardList, Cpu, Image, MapPin, Tag, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Button from "./Button";
 
@@ -23,6 +23,7 @@ const EMPTY_FORM = {
   specialty: "general",
   location: "",
   status: "Operativo",
+  imageUrl: "",
   notes: "",
 };
 
@@ -34,6 +35,7 @@ function getInitialForm(asset) {
     specialty: asset.specialty || "general",
     location: asset.location || "",
     status: asset.status || "Operativo",
+    imageUrl: asset.imageUrl || "",
     notes: asset.notes || "",
   };
 }
@@ -108,6 +110,11 @@ export default function AssetFormModal({ asset, onClose, onSave }) {
         </div>
 
         <div className="space-y-4 p-5">
+          {form.imageUrl ? (
+            <div className="overflow-hidden rounded-3xl bg-slate-100">
+              <img className="h-36 w-full object-cover" src={form.imageUrl} alt="" />
+            </div>
+          ) : null}
           <TextField label="Nombre del activo" icon={Cpu} value={form.name} required onChange={(value) => update("name", value)} />
           <div className="grid grid-cols-2 gap-3">
             <TextField label="Codigo" icon={Tag} value={form.code} required onChange={(value) => update("code", value)} />
@@ -115,6 +122,7 @@ export default function AssetFormModal({ asset, onClose, onSave }) {
           </div>
           <SelectField label="Especialidad" value={form.specialty} onChange={(value) => update("specialty", value)} options={ASSET_SPECIALTIES} />
           <TextField label="Ubicacion" icon={MapPin} value={form.location} placeholder="Ej: Cuarto de calderas" required onChange={(value) => update("location", value)} />
+          <TextField label="Imagen URL" icon={Image} value={form.imageUrl} placeholder="https://..." onChange={(value) => update("imageUrl", value)} />
           
           <label className="block">
             <span className="mb-1.5 block text-sm font-black text-slate-700">Observaciones y datos tecnicos</span>
