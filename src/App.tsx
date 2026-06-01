@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation, Navigate, useParams } from "react-router-dom";
 import BottomNav from "./components/BottomNav";
 import AgendaScreen from "./screens/AgendaScreen";
 import HomeScreen from "./screens/HomeScreen";
@@ -13,14 +13,15 @@ import WorkOrdersScreen from "./screens/WorkOrdersScreen";
 import { exportBackup, importBackup } from "./services/backupService";
 import { resetAllData, saveAssets, saveInstallations, saveSettings, saveTechnicians, saveWorkOrders } from "./services/storage";
 import { useStore } from "./store/useStore";
+import type { Asset, DisplayInstallation, DisplayWorkOrder, Installation, Technician, WorkOrder } from "./types";
 
-const TYPE_LABELS = {
+const TYPE_LABELS: Record<string, string> = {
   visita: "Parte de visita",
   preventiva: "Preventiva",
   correctiva: "Correctiva",
 };
 
-const STATUS_LABELS = {
+const STATUS_LABELS: Record<string, string> = {
   nueva: "Nueva",
   pendiente: "Pendiente",
   asignada: "Asignada",
@@ -37,7 +38,7 @@ const STATUS_LABELS = {
   averiado: "Averiado",
 };
 
-const SPECIALTY_LABELS = {
+const SPECIALTY_LABELS: Record<string, string> = {
   electricidad: "Electricidad",
   fontaneria: "Fontaneria",
   climatizacion: "Climatizacion",
@@ -46,7 +47,7 @@ const SPECIALTY_LABELS = {
   mecanica: "Mecanica",
 };
 
-const PRIORITY_LABELS = {
+const PRIORITY_LABELS: Record<string, string> = {
   baja: "Baja",
   media: "Media",
   alta: "Alta",
@@ -55,15 +56,15 @@ const PRIORITY_LABELS = {
 
 const OPEN_WORK_ORDER_STATUSES = new Set(["nueva", "pendiente", "asignada", "en_curso", "observada", "demorada"]);
 
-function labelFrom(map, value) {
-  return map[value] || value || "";
+function labelFrom(map: Record<string, string>, value?: string) {
+  return value ? map[value] || value : "";
 }
 
-function formatAddress(installation) {
+function formatAddress(installation: Installation) {
   return [installation.address, installation.city, installation.province].filter(Boolean).join(", ");
 }
 
-function getVisualByType(type) {
+function getVisualByType(type: string) {
   if (type === "hospital") return "hospital";
   if (type === "centro_especialidades") return "clinic";
   if (type === "residencia") return "residence";
@@ -72,12 +73,12 @@ function getVisualByType(type) {
   return "clinic";
 }
 
-function enrichInstallations(installations, assets, workOrders) {
+function enrichInstallations(installations: Installation[], assets: Asset[], workOrders: WorkOrder[]): DisplayInstallation[] {
   return installations.map((installation) => {
     const installationAssets = assets.filter((asset) => asset.installationId === installation.id);
     const installationOrders = workOrders.filter((order) => order.installationId === installation.id);
     const specialties = Object.entries(
-      installationAssets.reduce((groups, asset) => {
+      installationAssets.reduce<Record<string, number>>((groups, asset) => {
         groups[asset.specialty] = (groups[asset.specialty] || 0) + 1;
         return groups;
       }, {})
@@ -104,7 +105,7 @@ function enrichInstallations(installations, assets, workOrders) {
   });
 }
 
-function enrichWorkOrders(workOrders, installations, assets, technicians) {
+function enrichWorkOrders(workOrders: WorkOrder[], installations: Installation[], assets: Asset[], technicians: Technician[]): DisplayWorkOrder[] {
   return workOrders.map((order) => {
     const installation = installations.find((item) => item.id === order.installationId);
     const asset = assets.find((item) => item.id === order.assetId);
@@ -130,6 +131,57 @@ function enrichWorkOrders(workOrders, installations, assets, technicians) {
   });
 }
 
+function InstallationRoute({
+  installations,
+  assets,
+  workOrders,
+  onBack,
+  onSaveInstallation,
+  onDeleteInstallation,
+  onSaveAsset,
+  onOpenWorkOrder,
+  onCreateWorkOrder,
+}: any) {
+  const { id } = useParams();
+  const routeLocation = useLocation();
+  const highlightedLocation = new URLSearchParams(routeLocation.search).get("ubicacion") || "";
+  const installation = installations.find((item: DisplayInstallation) => item.id === id);
+  if (!installation) return <Navigate to="/instalaciones" replace />;
+
+  return (
+    <InstallationDetailScreen
+      installation={installation}
+      assets={assets.filter((asset: Asset) => asset.installationId === installation.id)}
+      workOrders={workOrders.filter((order: DisplayWorkOrder) => order.installationId === installation.id)}
+      onBack={onBack}
+      onSaveInstallation={onSaveInstallation}
+      onDeleteInstallation={onDeleteInstallation}
+      onSaveAsset={onSaveAsset}
+      onOpenWorkOrder={onOpenWorkOrder}
+      onCreateWorkOrder={onCreateWorkOrder}
+      highlightedLocation={highlightedLocation}
+    />
+  );
+}
+
+function WorkOrderRoute({ workOrders, installations, technicians, onBack, onUpdateStatus, onSaveWorkOrder, onDeleteWorkOrder }: any) {
+  const { id } = useParams();
+  const order = workOrders.find((item: DisplayWorkOrder) => item.id === id);
+  if (!order) return <Navigate to="/ordenes" replace />;
+
+  return (
+    <WorkOrderDetailScreen
+      order={order}
+      installations={installations}
+      technicians={technicians}
+      onBack={onBack}
+      onUpdateStatus={onUpdateStatus}
+      onSaveWorkOrder={onSaveWorkOrder}
+      onDeleteWorkOrder={onDeleteWorkOrder}
+    />
+  );
+}
+
 export default function App() {
   const {
     installations, assets, workOrders, technicians, settings,
@@ -142,7 +194,7 @@ export default function App() {
 
   const [selectedInstallationId, setSelectedInstallationId] = useState(installations[0]?.id || "");
   const [selectedWorkOrderId, setSelectedWorkOrderId] = useState(workOrders[1]?.id || workOrders[0]?.id || "");
-  const [newWorkOrderDefaults, setNewWorkOrderDefaults] = useState({});
+  const [newWorkOrderDefaults, setNewWorkOrderDefaults] = useState<Record<string, string>>({});
   const [workOrderFilter, setWorkOrderFilter] = useState("Todas");
 
   useEffect(() => {
@@ -158,17 +210,7 @@ export default function App() {
   const displayInstallations = useMemo(() => enrichInstallations(installations, assets, workOrders), [installations, assets, workOrders]);
   const displayWorkOrders = useMemo(() => enrichWorkOrders(workOrders, installations, assets, technicians), [workOrders, installations, assets, technicians]);
 
-  const selectedInstallation = useMemo(
-    () => displayInstallations.find((installation) => installation.id === selectedInstallationId) || displayInstallations[0],
-    [displayInstallations, selectedInstallationId]
-  );
-
-  const selectedWorkOrder = useMemo(
-    () => displayWorkOrders.find((order) => order.id === selectedWorkOrderId) || displayWorkOrders[0],
-    [displayWorkOrders, selectedWorkOrderId]
-  );
-
-  const navigateTo = (target) => {
+  const navigateTo = (target: string) => {
     const paths = {
       home: "/",
       installations: "/instalaciones",
@@ -177,35 +219,35 @@ export default function App() {
       reports: "/informes",
       settings: "/ajustes",
       newWorkOrder: "/ordenes/nueva",
-      installationDetail: `/instalaciones/${selectedInstallationId}`,
-      workOrderDetail: `/ordenes/${selectedWorkOrderId}`,
+      installationDetail: `/instalaciones/${selectedInstallationId || displayInstallations[0]?.id || ""}`,
+      workOrderDetail: `/ordenes/${selectedWorkOrderId || displayWorkOrders[0]?.id || ""}`,
     };
     if (target === "newWorkOrder") setNewWorkOrderDefaults({});
     navigate(paths[target] || "/");
   };
 
-  const openInstallation = (id) => {
+  const openInstallation = (id: string) => {
     setSelectedInstallationId(id);
     navigate(`/instalaciones/${id}`);
   };
 
-  const openWorkOrder = (id) => {
+  const openWorkOrder = (id: string) => {
     setSelectedWorkOrderId(id);
     navigate(`/ordenes/${id}`);
   };
 
-  const handleCreateWorkOrder = (form) => {
+  const handleCreateWorkOrder = (form: any) => {
     const id = createWorkOrder(form);
     setSelectedWorkOrderId(id);
     navigate(`/ordenes/${id}`);
   };
 
-  const handleSaveInstallation = (id, form) => {
+  const handleSaveInstallation = (id: string | null | undefined, form: any) => {
     const newId = saveInstallation(id, form);
     if (!id) setSelectedInstallationId(newId);
   };
 
-  const handleDeleteInstallation = (id) => {
+  const handleDeleteInstallation = (id: string) => {
     deleteInstallation(id);
     if (selectedInstallationId === id) {
       const nextInstallation = installations.find((installation) => installation.id !== id);
@@ -214,14 +256,14 @@ export default function App() {
     }
   };
 
-  const handleDeleteWorkOrder = (id) => {
+  const handleDeleteWorkOrder = (id: string) => {
     deleteWorkOrder(id);
     const next = workOrders.filter((order) => order.id !== id);
     setSelectedWorkOrderId(next[0]?.id || "");
     navigate("/ordenes");
   };
 
-  const handleImportBackup = async (file) => {
+  const handleImportBackup = async (file: File) => {
     const restored = await importBackup(file);
     reloadData(restored);
   };
@@ -242,10 +284,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomeScreen installations={displayInstallations} workOrders={displayWorkOrders} onNavigate={navigateTo} onOpenInstallation={openInstallation} onOpenWorkOrder={openWorkOrder} />} />
           <Route path="/instalaciones" element={<InstallationsScreen installations={displayInstallations} assets={assets} workOrders={workOrders} onOpenInstallation={openInstallation} onSaveInstallation={handleSaveInstallation} onDeleteInstallation={handleDeleteInstallation} />} />
-          <Route path="/instalaciones/:id" element={<InstallationDetailScreen installation={selectedInstallation} assets={assets.filter((asset) => asset.installationId === selectedInstallation?.id)} workOrders={displayWorkOrders.filter((order) => order.installationId === selectedInstallation?.id)} onBack={() => navigate("/instalaciones")} onSaveInstallation={handleSaveInstallation} onDeleteInstallation={handleDeleteInstallation} onSaveAsset={saveAsset} onOpenWorkOrder={openWorkOrder} onCreateWorkOrder={(defaults = {}) => { setNewWorkOrderDefaults({ installationId: selectedInstallation?.id || "", ...defaults }); navigate("/ordenes/nueva"); }} />} />
+          <Route path="/instalaciones/:id" element={<InstallationRoute installations={displayInstallations} assets={assets} workOrders={displayWorkOrders} onBack={() => navigate("/instalaciones")} onSaveInstallation={handleSaveInstallation} onDeleteInstallation={handleDeleteInstallation} onSaveAsset={saveAsset} onOpenWorkOrder={openWorkOrder} onCreateWorkOrder={(installationId: string, defaults = {}) => { setNewWorkOrderDefaults({ installationId, ...defaults }); navigate("/ordenes/nueva"); }} />} />
           <Route path="/ordenes" element={<WorkOrdersScreen workOrders={displayWorkOrders} filter={workOrderFilter} setFilter={setWorkOrderFilter} onOpenWorkOrder={openWorkOrder} onNewWorkOrder={() => { setNewWorkOrderDefaults({}); navigate("/ordenes/nueva"); }} />} />
           <Route path="/ordenes/nueva" element={<NewWorkOrderScreen installations={displayInstallations} technicians={technicians} defaults={newWorkOrderDefaults} onBack={() => navigate(-1)} onCreate={handleCreateWorkOrder} />} />
-          <Route path="/ordenes/:id" element={<WorkOrderDetailScreen order={selectedWorkOrder} installations={displayInstallations} technicians={technicians} onBack={() => navigate(-1)} onUpdateStatus={updateWorkOrderStatus} onSaveWorkOrder={saveWorkOrder} onDeleteWorkOrder={handleDeleteWorkOrder} />} />
+          <Route path="/ordenes/:id" element={<WorkOrderRoute workOrders={displayWorkOrders} installations={displayInstallations} technicians={technicians} onBack={() => navigate(-1)} onUpdateStatus={updateWorkOrderStatus} onSaveWorkOrder={saveWorkOrder} onDeleteWorkOrder={handleDeleteWorkOrder} />} />
           <Route path="/agenda" element={<AgendaScreen workOrders={displayWorkOrders} onOpenWorkOrder={openWorkOrder} onNewWorkOrder={() => { setNewWorkOrderDefaults({}); navigate("/ordenes/nueva"); }} />} />
           <Route path="/informes" element={<ReportsScreen workOrders={displayWorkOrders} installations={displayInstallations} settings={settings} />} />
           <Route path="/ajustes" element={<SettingsScreen settings={settings} technicians={technicians} onExportBackup={exportBackup} onImportBackup={handleImportBackup} onResetAllData={() => { reloadData(resetAllData()); navigate("/"); }} onSaveCompanySettings={saveCompanySettings} onSaveTechnician={saveTechnician} onDeleteTechnician={deleteTechnician} />} />

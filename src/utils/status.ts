@@ -9,7 +9,8 @@ export function getStatusTone(status) {
 
 export function nextWorkOrderNumber(workOrders) {
   const max = workOrders.reduce((highest, order) => {
-    const number = Number(String(order.number).split("-").at(-1));
+    const parts = String(order.number).split("-");
+    const number = Number(parts[parts.length - 1]);
     return Number.isFinite(number) ? Math.max(highest, number) : highest;
   }, 15);
   return `OT-2025-${String(max + 1).padStart(5, "0")}`;

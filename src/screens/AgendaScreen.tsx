@@ -5,14 +5,14 @@ import Header from "../components/Header";
 import StatusBadge from "../components/StatusBadge";
 import { formatLongDay, formatMonthYear, getWeekDays, toDateInputValue } from "../utils/dates";
 
-export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrder }) {
+export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrder }: any) {
   const [selectedDate, setSelectedDate] = useState(toDateInputValue(new Date()));
   const days = getWeekDays(selectedDate);
   const agenda = useMemo(
     () =>
       workOrders
         .filter((order) => toDateInputValue(order.scheduledAt || order.createdAt) === selectedDate)
-        .sort((a, b) => new Date(a.scheduledAt || a.createdAt) - new Date(b.scheduledAt || b.createdAt)),
+        .sort((a, b) => new Date(a.scheduledAt || a.createdAt).getTime() - new Date(b.scheduledAt || b.createdAt).getTime()),
     [selectedDate, workOrders]
   );
 

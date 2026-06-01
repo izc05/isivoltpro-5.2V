@@ -1,6 +1,14 @@
+import type React from "react";
 import { classNames } from "../utils/classNames";
 
-export default function Button({ children, icon: Icon, variant = "primary", className = "", ...props }) {
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  children: React.ReactNode;
+  icon?: React.ComponentType<{ size?: number; strokeWidth?: number }>;
+  variant?: "primary" | "dark" | "outline" | "ghost" | "danger";
+  className?: string;
+};
+
+export default function Button({ children, icon: Icon, variant = "primary", className = "", ...props }: ButtonProps) {
   const variants = {
     primary: "bg-gradient-to-r from-cyan-300 via-sky-300 to-amber-300 text-slate-950 shadow-soft",
     dark: "bg-primaryDark text-cyan-200 shadow-soft",

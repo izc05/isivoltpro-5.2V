@@ -1,12 +1,13 @@
+import type React from "react";
 import { AlertCircle, ArrowLeft, Building2, CalendarDays, Camera, Check, ChevronDown, ClipboardCheck, ClipboardPlus, Flag, MapPin, ShieldCheck, User, Wrench, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Button from "../components/Button";
 import { toDateInputValue } from "../utils/dates";
 
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    reader.onload = () => resolve(String(reader.result || ""));
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
@@ -47,11 +48,11 @@ const presets = [
   },
 ];
 
-function isPresetText(value, key) {
+function isPresetText(value: string, key: "title" | "description") {
   return presets.some((preset) => preset[key] === value);
 }
 
-function SelectField({ label, icon: Icon, value, onChange, children }) {
+function SelectField({ label, icon: Icon, value, onChange, children }: any) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-black text-slate-700">{label}</span>
@@ -66,7 +67,7 @@ function SelectField({ label, icon: Icon, value, onChange, children }) {
   );
 }
 
-function TextField({ label, icon: Icon, value, onChange, placeholder = "", type = "text" }) {
+function TextField({ label, icon: Icon, value, onChange, placeholder = "", type = "text" }: any) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-black text-slate-700">{label}</span>
@@ -78,12 +79,12 @@ function TextField({ label, icon: Icon, value, onChange, placeholder = "", type 
   );
 }
 
-export default function NewWorkOrderScreen({ installations, technicians, defaults = {}, onBack, onCreate }) {
+export default function NewWorkOrderScreen({ installations, technicians, defaults = {}, onBack, onCreate }: any) {
   const [form, setForm] = useState({
     type: "Correctiva",
     installationId: defaults.installationId || installations[0]?.id || "",
     specialty: defaults.specialty || "Electricidad",
-    location: "",
+    location: defaults.location || "",
     technician: technicians[0]?.name || "",
     priority: "Media",
     date: toDateInputValue(new Date()),
@@ -107,15 +108,16 @@ export default function NewWorkOrderScreen({ installations, technicians, default
       ...current,
       installationId: defaults.installationId || current.installationId,
       specialty: defaults.specialty || current.specialty,
+      location: defaults.location || current.location,
     }));
-  }, [defaults.installationId, defaults.specialty]);
+  }, [defaults.installationId, defaults.location, defaults.specialty]);
 
-  const update = (key, value) => {
+  const update = (key: string, value: string) => {
     setError("");
     setForm((current) => ({ ...current, [key]: value }));
   };
 
-  const applyPreset = (preset) => {
+  const applyPreset = (preset: any) => {
     setError("");
     setForm((current) => ({
       ...current,
@@ -126,7 +128,7 @@ export default function NewWorkOrderScreen({ installations, technicians, default
     }));
   };
 
-  const changeType = (type) => {
+  const changeType = (type: string) => {
     const preset = presets.find((item) => item.type === type);
     if (preset) applyPreset(preset);
   };
@@ -143,7 +145,7 @@ export default function NewWorkOrderScreen({ installations, technicians, default
     onCreate({ ...form, title: form.title.trim(), description: form.description.trim() });
   };
 
-  const addPhotos = async (event) => {
+  const addPhotos = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || []);
     if (!files.length) return;
     const photos = await Promise.all(files.map(fileToDataUrl));
@@ -151,7 +153,7 @@ export default function NewWorkOrderScreen({ installations, technicians, default
     event.target.value = "";
   };
 
-  const removePhoto = (index) => {
+  const removePhoto = (index: number) => {
     setForm((current) => ({ ...current, photos: current.photos.filter((_, photoIndex) => photoIndex !== index) }));
   };
 

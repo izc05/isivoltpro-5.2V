@@ -36,8 +36,8 @@ export function exportBackup() {
   return payload;
 }
 
-function readFileAsText(file) {
-  return new Promise((resolve, reject) => {
+function readFileAsText(file: File) {
+  return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result || ""));
     reader.onerror = () => reject(reader.error || new Error("No se pudo leer el archivo."));

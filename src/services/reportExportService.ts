@@ -16,7 +16,7 @@ function todayStamp() {
 
 function csvValue(value) {
   const text = String(value ?? "");
-  return `"${text.replaceAll('"', '""')}"`;
+  return `"${text.replace(/"/g, '""')}"`;
 }
 
 function materialSummary(materials = []) {

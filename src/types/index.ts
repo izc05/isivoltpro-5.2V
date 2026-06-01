@@ -9,6 +9,7 @@ export interface Installation {
   createdAt: string;
   updatedAt: string;
   imageUrl?: string;
+  responsible?: string;
   contact?: string;
   phone?: string;
   email?: string;
@@ -22,6 +23,11 @@ export interface Asset {
   type: string;
   location: string;
   specialty: string;
+  code?: string;
+  criticality?: string;
+  status?: string;
+  imageUrl?: string;
+  notes?: string;
   brand?: string;
   model?: string;
   serialNumber?: string;
@@ -58,7 +64,11 @@ export interface WorkOrder {
 export interface Technician {
   id: string;
   name: string;
-  role: string;
+  role?: string;
+  specialty?: string;
+  shift?: string;
+  status?: string;
+  notes?: string;
   email?: string;
   phone?: string;
   createdAt: string;
@@ -66,7 +76,12 @@ export interface Technician {
 }
 
 export interface Settings {
-  company: {
+  companyName?: string;
+  theme?: string;
+  version?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  company?: {
     name: string;
     address: string;
     phone: string;
@@ -75,3 +90,53 @@ export interface Settings {
     logoUrl: string;
   };
 }
+
+export type AppData = {
+  installations: Installation[];
+  assets: Asset[];
+  workOrders: WorkOrder[];
+  technicians: Technician[];
+  settings: Settings;
+};
+
+export type WorkOrderForm = Partial<WorkOrder> & {
+  type?: string;
+  technician?: string;
+  date?: string;
+  time?: string;
+  photos?: string[];
+};
+
+export type DisplayInstallation = Installation & {
+  rawAddress?: string;
+  rawStatus?: string;
+  visual?: string;
+  assetsCount?: number;
+  lastUpdate?: string;
+  summary: {
+    assets: number;
+    preventive: number;
+    corrective: number;
+    openOrders: number;
+    technicians: number;
+  };
+  specialties: { name: string; assets: number }[];
+};
+
+export type DisplayWorkOrder = Omit<WorkOrder, "type" | "status" | "priority" | "specialty"> & {
+  rawType: string;
+  rawStatus: string;
+  rawPriority: string;
+  rawSpecialty: string;
+  type: string;
+  status: string;
+  priority: string;
+  specialty: string;
+  installation: string;
+  installationImageUrl: string;
+  installationAddress: string;
+  assetName: string;
+  technician: string;
+  photos: string[];
+  time: string;
+};

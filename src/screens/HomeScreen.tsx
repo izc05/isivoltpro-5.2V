@@ -28,7 +28,7 @@ const priorityStyles = {
   Baja: "bg-slate-100 text-slate-600",
 };
 
-export default function HomeScreen({ installations, workOrders, onNavigate, onOpenInstallation, onOpenWorkOrder }) {
+export default function HomeScreen({ installations, workOrders, onNavigate, onOpenInstallation, onOpenWorkOrder }: any) {
   const openOrders = workOrders.filter((order) => openStatuses.has(order.rawStatus));
   const closedOrders = workOrders.filter((order) => closedStatuses.has(order.rawStatus));
   const nextOrder = openOrders[0] || workOrders[0];
@@ -38,8 +38,13 @@ export default function HomeScreen({ installations, workOrders, onNavigate, onOp
   const today = new Date().toISOString().slice(0, 10);
   const todayCount = workOrders.filter((order) => String(order.scheduledAt || order.createdAt || "").slice(0, 10) === today).length;
   const priorityOrders = [...openOrders]
-    .sort((a, b) => (priorityRanks[b.priority] || 0) - (priorityRanks[a.priority] || 0) || new Date(a.scheduledAt || a.createdAt) - new Date(b.scheduledAt || b.createdAt))
+    .sort((a, b) => (priorityRanks[b.priority] || 0) - (priorityRanks[a.priority] || 0) || new Date(a.scheduledAt || a.createdAt).getTime() - new Date(b.scheduledAt || b.createdAt).getTime())
     .slice(0, 3);
+  const urgentCount = openOrders.filter((order) => order.priority === "Urgente" || order.priority === "Alta").length;
+  const nextPreventives = workOrders
+    .filter((order) => order.rawType === "preventiva" && openStatuses.has(order.rawStatus))
+    .sort((a, b) => new Date(a.scheduledAt || a.createdAt).getTime() - new Date(b.scheduledAt || b.createdAt).getTime())
+    .slice(0, 2);
 
   return (
     <>
@@ -126,6 +131,31 @@ export default function HomeScreen({ installations, workOrders, onNavigate, onOp
                 <p className="mt-2 font-black text-slate-700">Sin prioridades abiertas</p>
               </Card>
             )}
+          </div>
+        </Section>
+
+        <Section title="Flujo de trabajo">
+          <div className="grid grid-cols-2 gap-3">
+            <button className="rounded-3xl bg-white p-4 text-left shadow-soft" onClick={() => onNavigate("newWorkOrder")}>
+              <ClipboardCheck className="mb-3 text-emerald-600" size={28} />
+              <strong className="block text-primaryDark">Parte de visita</strong>
+              <span className="mt-1 block text-sm font-semibold text-slate-500">Registro rapido con fotos y notas.</span>
+            </button>
+            <button className="rounded-3xl bg-white p-4 text-left shadow-soft" onClick={() => onNavigate("workOrders")}>
+              <AlertTriangle className="mb-3 text-red-600" size={28} />
+              <strong className="block text-primaryDark">{urgentCount} prioritarias</strong>
+              <span className="mt-1 block text-sm font-semibold text-slate-500">Correctivos abiertos por urgencia.</span>
+            </button>
+            <button className="rounded-3xl bg-white p-4 text-left shadow-soft" onClick={() => onNavigate("agenda")}>
+              <CalendarDays className="mb-3 text-blue-600" size={28} />
+              <strong className="block text-primaryDark">{nextPreventives.length} preventivos</strong>
+              <span className="mt-1 block text-sm font-semibold text-slate-500">Proximas tareas programadas.</span>
+            </button>
+            <button className="rounded-3xl bg-white p-4 text-left shadow-soft" onClick={() => onNavigate("installations")}>
+              <Building2 className="mb-3 text-primary" size={28} />
+              <strong className="block text-primaryDark">Instalaciones</strong>
+              <span className="mt-1 block text-sm font-semibold text-slate-500">Activos, QR y ubicaciones.</span>
+            </button>
           </div>
         </Section>
 

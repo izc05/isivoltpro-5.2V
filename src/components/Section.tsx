@@ -1,4 +1,6 @@
-export default function Section({ title, action, children }) {
+import type React from "react";
+
+export default function Section({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-3 px-1">

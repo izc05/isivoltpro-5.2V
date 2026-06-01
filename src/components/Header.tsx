@@ -1,8 +1,18 @@
+import type React from "react";
 import { ArrowLeft, ShieldCheck, Zap } from "lucide-react";
-import Button from "./Button";
 import { classNames } from "../utils/classNames";
 
-export default function Header({ title, subtitle, eyebrow, actions, onBack, compact = false, children }) {
+type HeaderProps = {
+  title: string;
+  subtitle?: string;
+  eyebrow?: string;
+  actions?: React.ReactNode;
+  onBack?: () => void;
+  compact?: boolean;
+  children?: React.ReactNode;
+};
+
+export default function Header({ title, subtitle, eyebrow, actions, onBack, compact = false, children }: HeaderProps) {
   return (
     <header
       className={classNames(

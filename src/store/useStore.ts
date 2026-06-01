@@ -2,8 +2,9 @@ import { create } from 'zustand';
 import { initializeData } from '../services/storage';
 import { createId, generateWorkOrderNumber, nowIso } from '../utils/ids';
 import { buildLocalDateTime } from '../utils/dates';
+import type { AppData, Asset, Installation, Settings, Technician, WorkOrder, WorkOrderForm } from '../types';
 
-const TYPE_VALUES = {
+const TYPE_VALUES: Record<string, string> = {
   "Parte de visita": "visita",
   Visita: "visita",
   visita: "visita",
@@ -13,7 +14,7 @@ const TYPE_VALUES = {
   correctiva: "correctiva",
 };
 
-const STATUS_VALUES = {
+const STATUS_VALUES: Record<string, string> = {
   Nueva: "nueva",
   Pendiente: "pendiente",
   Asignada: "asignada",
@@ -24,7 +25,7 @@ const STATUS_VALUES = {
   Cerrada: "cerrada",
 };
 
-const SPECIALTY_VALUES = {
+const SPECIALTY_VALUES: Record<string, string> = {
   Electricidad: "electricidad",
   Fontaneria: "fontaneria",
   Climatizacion: "climatizacion",
@@ -33,7 +34,7 @@ const SPECIALTY_VALUES = {
   Mecanica: "mecanica",
 };
 
-const PRIORITY_VALUES = {
+const PRIORITY_VALUES: Record<string, string> = {
   Baja: "baja",
   Media: "media",
   Alta: "alta",
@@ -44,7 +45,26 @@ const FINISHED_WORK_ORDER_STATUSES = new Set(["completada", "cerrada"]);
 
 const initialData = initializeData();
 
-export const useStore = create((set, get) => ({
+type StoreState = AppData & {
+  setInstallations: (installations: Installation[]) => void;
+  setAssets: (assets: Asset[]) => void;
+  setWorkOrders: (workOrders: WorkOrder[]) => void;
+  setTechnicians: (technicians: Technician[]) => void;
+  setSettings: (settings: Settings) => void;
+  createWorkOrder: (form: WorkOrderForm) => string;
+  saveAsset: (id: string | null | undefined, form: Partial<Asset>) => string;
+  saveCompanySettings: (form: NonNullable<Settings["company"]>) => void;
+  saveTechnician: (id: string | null | undefined, form: Partial<Technician>) => string;
+  deleteTechnician: (id: string) => void;
+  saveInstallation: (id: string | null | undefined, form: Partial<Installation>) => string;
+  deleteInstallation: (id: string) => void;
+  updateWorkOrderStatus: (id: string, status: string) => void;
+  saveWorkOrder: (id: string, form: WorkOrderForm) => void;
+  deleteWorkOrder: (id: string) => void;
+  reloadData: (nextData: AppData) => void;
+};
+
+export const useStore = create<StoreState>((set, get) => ({
   installations: initialData.installations,
   assets: initialData.assets,
   workOrders: initialData.workOrders,
@@ -65,17 +85,17 @@ export const useStore = create((set, get) => ({
     const createdAt = nowIso();
     const description = form.description || "";
     const title = form.title || description.split(".")[0] || "Nueva orden de trabajo";
-    const created = {
+    const created: WorkOrder = {
       id: createId("ot"),
       number: generateWorkOrderNumber(workOrders),
       title,
-      type: TYPE_VALUES[form.type] || "correctiva",
+      type: TYPE_VALUES[form.type || ""] || "correctiva",
       status: "pendiente",
       installationId: installation?.id || "",
       assetId: "",
-      specialty: SPECIALTY_VALUES[form.specialty] || "general",
+      specialty: SPECIALTY_VALUES[form.specialty || ""] || "general",
       location: form.location || "",
-      priority: PRIORITY_VALUES[form.priority] || "media",
+      priority: PRIORITY_VALUES[form.priority || ""] || "media",
       assignedTechnicianId: technician?.id || "",
       description,
       actionTaken: "",
@@ -111,7 +131,7 @@ export const useStore = create((set, get) => ({
       ...form,
       createdAt: timestamp,
       updatedAt: timestamp,
-    };
+    } as Asset;
     set({ assets: [created, ...assets] });
     return created.id;
   },
@@ -130,7 +150,7 @@ export const useStore = create((set, get) => ({
       });
       return id;
     }
-    const created = { id: createId("tech"), ...form, createdAt: timestamp, updatedAt: timestamp };
+    const created = { id: createId("tech"), ...form, createdAt: timestamp, updatedAt: timestamp } as Technician;
     set({ technicians: [created, ...technicians] });
     return created.id;
   },
@@ -159,7 +179,7 @@ export const useStore = create((set, get) => ({
       ...form,
       createdAt: timestamp,
       updatedAt: timestamp,
-    };
+    } as Installation;
     set({ installations: [created, ...installations] });
     return created.id;
   },
@@ -199,12 +219,12 @@ export const useStore = create((set, get) => ({
           ? {
               ...order,
               title: form.title || order.title,
-              type: TYPE_VALUES[form.type] || order.type,
-              status: STATUS_VALUES[form.status] || order.status,
+              type: TYPE_VALUES[form.type || ""] || order.type,
+              status: STATUS_VALUES[form.status || ""] || order.status,
               installationId: form.installationId || order.installationId,
-              specialty: SPECIALTY_VALUES[form.specialty] || order.specialty,
+              specialty: SPECIALTY_VALUES[form.specialty || ""] || order.specialty,
               location: form.location ?? order.location,
-              priority: PRIORITY_VALUES[form.priority] || order.priority,
+              priority: PRIORITY_VALUES[form.priority || ""] || order.priority,
               assignedTechnicianId: technician?.id || form.assignedTechnicianId || order.assignedTechnicianId,
               description: form.description ?? order.description,
               actionTaken: form.actionTaken ?? order.actionTaken,
@@ -221,7 +241,7 @@ export const useStore = create((set, get) => ({
               scheduledAt: form.date ? buildLocalDateTime(form.date, form.time) : order.scheduledAt,
               initialPhotos: form.initialPhotos || order.initialPhotos || [],
               finalPhotos: form.finalPhotos || order.finalPhotos || [],
-              completedAt: FINISHED_WORK_ORDER_STATUSES.has(STATUS_VALUES[form.status] || order.status) ? order.completedAt || nowIso() : "",
+              completedAt: FINISHED_WORK_ORDER_STATUSES.has(STATUS_VALUES[form.status || ""] || order.status) ? order.completedAt || nowIso() : "",
               updatedAt: nowIso(),
             }
           : order

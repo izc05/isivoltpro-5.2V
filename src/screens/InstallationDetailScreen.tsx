@@ -18,7 +18,7 @@ const summaryTones: any = {
   "OT abiertas": "bg-purple-100 text-purple-700",
 };
 
-export default function InstallationDetailScreen({ installation, assets = [], workOrders = [], onBack, onSaveInstallation, onDeleteInstallation, onSaveAsset, onCreateWorkOrder, onOpenWorkOrder }: any) {
+export default function InstallationDetailScreen({ installation, assets = [], workOrders = [], highlightedLocation = "", onBack, onSaveInstallation, onDeleteInstallation, onSaveAsset, onCreateWorkOrder, onOpenWorkOrder }: any) {
   const [editing, setEditing] = useState(false);
   const [editingAsset, setEditingAsset] = useState<any>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
@@ -41,6 +41,9 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
 
   const latestOrders = workOrders.slice(0, 3);
   const featuredAssets = assets.slice(0, 3);
+  const locationAssets = highlightedLocation
+    ? assets.filter((asset: any) => String(asset.location || "").toLowerCase() === highlightedLocation.toLowerCase())
+    : [];
 
   return (
     <>
@@ -82,12 +85,27 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
         </Card>
 
         <div className="grid grid-cols-2 gap-3">
-          <Button icon={Plus} onClick={onCreateWorkOrder}>Crear OT</Button>
+          <Button icon={Plus} onClick={() => onCreateWorkOrder(installation.id, highlightedLocation ? { location: highlightedLocation } : {})}>Crear OT</Button>
           <Button icon={PackagePlus} variant="outline" onClick={() => setEditingAsset({})}>Añadir activo</Button>
           <Button icon={ShieldCheck} variant="dark" onClick={() => setSelectedSpecialty("Todos")}>Ver activos</Button>
           <Button icon={BriefcaseBusiness} variant="outline" onClick={() => setOrdersOpen(true)}>Ver ordenes</Button>
           <Button icon={QrCode} variant="outline" className="col-span-2" onClick={() => setQrOpen(true)}>QR instalacion y ubicaciones</Button>
         </div>
+
+        {highlightedLocation ? (
+          <Card className="border-cyan-200 bg-cyan-50">
+            <div className="flex items-start gap-3">
+              <MapPin className="mt-1 shrink-0 text-primary" size={24} />
+              <div>
+                <p className="text-xs font-black uppercase text-primary">QR de ubicacion</p>
+                <h2 className="text-xl font-black text-primaryDark">{highlightedLocation}</h2>
+                <p className="mt-1 text-sm font-semibold text-slate-600">
+                  {locationAssets.length ? `${locationAssets.length} activos localizados en esta zona.` : "Ubicacion abierta desde QR para crear o revisar una OT."}
+                </p>
+              </div>
+            </div>
+          </Card>
+        ) : null}
 
         <div className="grid grid-cols-4 gap-3">
           {[
@@ -209,7 +227,7 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
             assets={assets}
             workOrders={workOrders}
             onClose={() => setSelectedSpecialty("")}
-            onCreateWorkOrder={() => onCreateWorkOrder(selectedSpecialty === "Todos" ? {} : { specialty: selectedSpecialty })}
+            onCreateWorkOrder={() => onCreateWorkOrder(installation.id, selectedSpecialty === "Todos" ? {} : { specialty: selectedSpecialty })}
             onOpenAsset={(asset: any) => {
               setSelectedSpecialty("");
               setEditingAsset(asset);

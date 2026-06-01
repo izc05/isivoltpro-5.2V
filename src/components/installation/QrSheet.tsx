@@ -1,9 +1,15 @@
-import { Download, QrCode, X } from "lucide-react";
+import { Download, ExternalLink, QrCode, X } from "lucide-react";
 import QRCode from "qrcode";
 import { useEffect, useMemo, useState } from "react";
 
 function safeFileName(value: string | undefined | null) {
   return String(value || "qr").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "qr";
+}
+
+function buildAppUrl(path: string) {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${window.location.origin}${base}${normalizedPath}`;
 }
 
 function QrItem({ title, subtitle, payload, fileName }: any) {
@@ -32,12 +38,18 @@ function QrItem({ title, subtitle, payload, fileName }: any) {
         <div className="min-w-0">
           <h3 className="truncate text-lg font-black text-primaryDark">{title}</h3>
           <p className="mt-1 line-clamp-2 text-sm font-semibold text-slate-500">{subtitle}</p>
-          {qrUrl ? (
-            <a className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2 text-sm font-black text-slate-700" href={qrUrl} download={`${safeFileName(fileName)}.png`}>
-              <Download size={17} />
-              Descargar
+          <div className="mt-4 flex flex-wrap gap-2">
+            {qrUrl ? (
+              <a className="inline-flex items-center gap-2 rounded-2xl bg-slate-100 px-4 py-2 text-sm font-black text-slate-700" href={qrUrl} download={`${safeFileName(fileName)}.png`}>
+                <Download size={17} />
+                PNG
+              </a>
+            ) : null}
+            <a className="inline-flex items-center gap-2 rounded-2xl bg-primaryDark px-4 py-2 text-sm font-black text-cyan-100" href={payload}>
+              <ExternalLink size={17} />
+              Abrir
             </a>
-          ) : null}
+          </div>
         </div>
       </div>
     </div>
@@ -78,7 +90,7 @@ export default function QrSheet({ installation, assets, workOrders, onClose }: a
             title={installation.name}
             subtitle={installation.address}
             fileName={`qr-${installation.name}`}
-            payload={JSON.stringify({ app: "IsiVoltPro Mantenimiento", type: "installation", installationId: installation.id, name: installation.name })}
+            payload={buildAppUrl(`/instalaciones/${installation.id}`)}
           />
           {locations.map((location: any) => (
             <QrItem
@@ -86,7 +98,7 @@ export default function QrSheet({ installation, assets, workOrders, onClose }: a
               title={location.name}
               subtitle={`${installation.name} · ${location.sourceLabel}`}
               fileName={`qr-${installation.name}-${location.name}`}
-              payload={JSON.stringify({ app: "IsiVoltPro Mantenimiento", type: "location", installationId: installation.id, installation: installation.name, location: location.name })}
+              payload={buildAppUrl(`/instalaciones/${installation.id}?ubicacion=${encodeURIComponent(location.name)}`)}
             />
           ))}
           {!locations.length ? (

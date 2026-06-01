@@ -2,7 +2,7 @@ import { Building2, Check, Globe, Image, Mail, MapPin, Phone, X } from "lucide-r
 import { useEffect, useState } from "react";
 import Button from "./Button";
 
-function TextField({ label, icon: Icon, value, onChange, type = "text", required = false, placeholder = "" }) {
+function TextField({ label, icon: Icon, value, onChange, type = "text", required = false, placeholder = "" }: any) {
   return (
     <label className="block">
       <span className="mb-1.5 block text-sm font-black text-slate-700">{label}</span>
