@@ -12,7 +12,7 @@ const items = [
 
 export default function BottomNav({ current, onNavigate }) {
   return (
-    <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 px-3 pb-3">
+    <nav className="fixed bottom-0 left-1/2 z-40 w-full max-w-md -translate-x-1/2 px-3 pb-3 md:max-w-3xl lg:max-w-5xl">
       <div className="grid grid-cols-6 rounded-t-[36px] rounded-b-[30px] bg-[radial-gradient(circle_at_top_left,#155E75_0%,#173B72_44%,#071426_100%)] px-2 pb-3 pt-4 shadow-nav ring-1 ring-white/10">
         {items.map((item) => {
           const Icon = item.icon;

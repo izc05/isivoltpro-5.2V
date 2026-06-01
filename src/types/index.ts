@@ -13,6 +13,8 @@ export interface Installation {
   contact?: string;
   phone?: string;
   email?: string;
+  gpsLat?: string;
+  gpsLng?: string;
   notes?: string;
 }
 
@@ -27,6 +29,8 @@ export interface Asset {
   criticality?: string;
   status?: string;
   imageUrl?: string;
+  gpsLat?: string;
+  gpsLng?: string;
   notes?: string;
   brand?: string;
   model?: string;
@@ -50,15 +54,25 @@ export interface WorkOrder {
   assignedTechnicianId: string;
   description: string;
   actionTaken: string;
-  materials: { type: string; quantity: string }[];
+  materials: { id?: string; type: string; quantity: string; photoUrl?: string }[];
   timeSpentMinutes: number;
   observations: string;
   initialPhotos: string[];
   finalPhotos: string[];
+  gpsLat?: string;
+  gpsLng?: string;
+  visitSignature?: WorkOrderSignature;
+  closureSignature?: WorkOrderSignature;
   createdAt: string;
   scheduledAt: string;
   completedAt: string;
   updatedAt: string;
+}
+
+export interface WorkOrderSignature {
+  name: string;
+  dataUrl: string;
+  signedAt: string;
 }
 
 export interface Technician {

@@ -1,5 +1,5 @@
 import type React from "react";
-import { AlertCircle, ArrowLeft, Building2, CalendarDays, Camera, Check, ChevronDown, ClipboardCheck, ClipboardPlus, Flag, MapPin, ShieldCheck, User, Wrench, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, Building2, CalendarDays, Camera, Check, ChevronDown, ClipboardCheck, ClipboardPlus, Flag, LocateFixed, MapPin, ShieldCheck, User, Wrench, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Button from "../components/Button";
 import { toDateInputValue } from "../utils/dates";
@@ -92,6 +92,8 @@ export default function NewWorkOrderScreen({ installations, technicians, default
     title: "",
     description: "",
     photos: [],
+    gpsLat: defaults.gpsLat || "",
+    gpsLng: defaults.gpsLng || "",
   });
   const [error, setError] = useState("");
 
@@ -109,8 +111,10 @@ export default function NewWorkOrderScreen({ installations, technicians, default
       installationId: defaults.installationId || current.installationId,
       specialty: defaults.specialty || current.specialty,
       location: defaults.location || current.location,
+      gpsLat: defaults.gpsLat || current.gpsLat,
+      gpsLng: defaults.gpsLng || current.gpsLng,
     }));
-  }, [defaults.installationId, defaults.location, defaults.specialty]);
+  }, [defaults.gpsLat, defaults.gpsLng, defaults.installationId, defaults.location, defaults.specialty]);
 
   const update = (key: string, value: string) => {
     setError("");
@@ -143,6 +147,25 @@ export default function NewWorkOrderScreen({ installations, technicians, default
       return;
     }
     onCreate({ ...form, title: form.title.trim(), description: form.description.trim() });
+  };
+
+  const captureGps = () => {
+    if (!navigator.geolocation) {
+      setError("Este dispositivo no permite obtener GPS desde el navegador.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setError("");
+        setForm((current) => ({
+          ...current,
+          gpsLat: String(position.coords.latitude),
+          gpsLng: String(position.coords.longitude),
+        }));
+      },
+      () => setError("No se ha podido obtener la ubicacion GPS."),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
   };
 
   const addPhotos = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -240,6 +263,11 @@ export default function NewWorkOrderScreen({ installations, technicians, default
           </div>
 
           <TextField label="Zona" icon={MapPin} value={form.location} placeholder="Ej: Sala tecnica, cubierta, planta 1" onChange={(value) => update("location", value)} />
+
+          <button type="button" className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-cyan-300 bg-cyan-50 px-4 font-black text-primary" onClick={captureGps}>
+            <LocateFixed size={21} />
+            {form.gpsLat && form.gpsLng ? "GPS guardado" : "Usar ubicacion GPS"}
+          </button>
 
           <SelectField label="Tecnico asignado" icon={User} value={form.technician} onChange={(value) => update("technician", value)}>
             {technicians.map((technician) => <option key={technician.id}>{technician.name}</option>)}

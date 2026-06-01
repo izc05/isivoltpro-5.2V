@@ -101,6 +101,15 @@ export default function QrSheet({ installation, assets, workOrders, onClose }: a
               payload={buildAppUrl(`/instalaciones/${installation.id}?ubicacion=${encodeURIComponent(location.name)}`)}
             />
           ))}
+          {assets.map((asset: any) => (
+            <QrItem
+              key={asset.id}
+              title={asset.name}
+              subtitle={`${asset.code || "Activo"} · ${asset.location || installation.name}`}
+              fileName={`qr-${installation.name}-${asset.code || asset.name}`}
+              payload={buildAppUrl(`/instalaciones/${installation.id}?activo=${encodeURIComponent(asset.id)}`)}
+            />
+          ))}
           {!locations.length ? (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-white p-6 text-center font-bold text-slate-500">Anade activos u ordenes con ubicacion para generar QR de zonas.</div>
           ) : null}

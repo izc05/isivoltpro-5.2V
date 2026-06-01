@@ -18,7 +18,7 @@ const summaryTones: any = {
   "OT abiertas": "bg-purple-100 text-purple-700",
 };
 
-export default function InstallationDetailScreen({ installation, assets = [], workOrders = [], highlightedLocation = "", onBack, onSaveInstallation, onDeleteInstallation, onSaveAsset, onCreateWorkOrder, onOpenWorkOrder }: any) {
+export default function InstallationDetailScreen({ installation, assets = [], workOrders = [], highlightedLocation = "", highlightedAssetId = "", onBack, onSaveInstallation, onDeleteInstallation, onSaveAsset, onCreateWorkOrder, onOpenWorkOrder }: any) {
   const [editing, setEditing] = useState(false);
   const [editingAsset, setEditingAsset] = useState<any>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
@@ -44,6 +44,7 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
   const locationAssets = highlightedLocation
     ? assets.filter((asset: any) => String(asset.location || "").toLowerCase() === highlightedLocation.toLowerCase())
     : [];
+  const highlightedAsset = highlightedAssetId ? assets.find((asset: any) => asset.id === highlightedAssetId) : null;
 
   return (
     <>
@@ -102,6 +103,22 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
                 <p className="mt-1 text-sm font-semibold text-slate-600">
                   {locationAssets.length ? `${locationAssets.length} activos localizados en esta zona.` : "Ubicacion abierta desde QR para crear o revisar una OT."}
                 </p>
+              </div>
+            </div>
+          </Card>
+        ) : null}
+
+        {highlightedAsset ? (
+          <Card className="border-amber-200 bg-amber-50">
+            <div className="grid grid-cols-[88px_minmax(0,1fr)] gap-4">
+              <AssetVisual asset={highlightedAsset} size="small" />
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase text-amber-700">QR de activo</p>
+                <h2 className="truncate text-xl font-black text-primaryDark">{highlightedAsset.name}</h2>
+                <p className="mt-1 text-sm font-semibold text-slate-600">{highlightedAsset.code} · {highlightedAsset.location}</p>
+                <button className="mt-3 rounded-2xl bg-white px-4 py-2 text-sm font-black text-primary shadow-soft" onClick={() => setEditingAsset(highlightedAsset)}>
+                  Abrir ficha
+                </button>
               </div>
             </div>
           </Card>

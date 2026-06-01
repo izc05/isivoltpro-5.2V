@@ -104,6 +104,8 @@ export const useStore = create<StoreState>((set, get) => ({
       observations: "",
       initialPhotos: form.photos?.length ? form.photos : [],
       finalPhotos: [],
+      gpsLat: form.gpsLat || "",
+      gpsLng: form.gpsLng || "",
       createdAt,
       scheduledAt,
       completedAt: "",
@@ -232,15 +234,21 @@ export const useStore = create<StoreState>((set, get) => ({
               materials: Array.isArray(form.materials)
                 ? form.materials
                     .map((item) => ({
+                      id: item.id || createId("mat"),
                       type: String(item.type || "").trim(),
                       quantity: String(item.quantity || "").trim(),
+                      photoUrl: String(item.photoUrl || "").trim(),
                     }))
-                    .filter((item) => item.type || item.quantity)
+                    .filter((item) => item.type || item.quantity || item.photoUrl)
                 : order.materials || [],
               timeSpentMinutes: Number(form.timeSpentMinutes || order.timeSpentMinutes || 0),
               scheduledAt: form.date ? buildLocalDateTime(form.date, form.time) : order.scheduledAt,
               initialPhotos: form.initialPhotos || order.initialPhotos || [],
               finalPhotos: form.finalPhotos || order.finalPhotos || [],
+              gpsLat: form.gpsLat ?? order.gpsLat,
+              gpsLng: form.gpsLng ?? order.gpsLng,
+              visitSignature: form.visitSignature ?? order.visitSignature,
+              closureSignature: form.closureSignature ?? order.closureSignature,
               completedAt: FINISHED_WORK_ORDER_STATUSES.has(STATUS_VALUES[form.status || ""] || order.status) ? order.completedAt || nowIso() : "",
               updatedAt: nowIso(),
             }

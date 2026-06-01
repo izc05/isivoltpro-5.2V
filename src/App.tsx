@@ -144,7 +144,9 @@ function InstallationRoute({
 }: any) {
   const { id } = useParams();
   const routeLocation = useLocation();
-  const highlightedLocation = new URLSearchParams(routeLocation.search).get("ubicacion") || "";
+  const search = new URLSearchParams(routeLocation.search);
+  const highlightedLocation = search.get("ubicacion") || "";
+  const highlightedAssetId = search.get("activo") || "";
   const installation = installations.find((item: DisplayInstallation) => item.id === id);
   if (!installation) return <Navigate to="/instalaciones" replace />;
 
@@ -160,11 +162,12 @@ function InstallationRoute({
       onOpenWorkOrder={onOpenWorkOrder}
       onCreateWorkOrder={onCreateWorkOrder}
       highlightedLocation={highlightedLocation}
+      highlightedAssetId={highlightedAssetId}
     />
   );
 }
 
-function WorkOrderRoute({ workOrders, installations, technicians, onBack, onUpdateStatus, onSaveWorkOrder, onDeleteWorkOrder }: any) {
+function WorkOrderRoute({ workOrders, installations, technicians, settings, onBack, onUpdateStatus, onSaveWorkOrder, onDeleteWorkOrder }: any) {
   const { id } = useParams();
   const order = workOrders.find((item: DisplayWorkOrder) => item.id === id);
   if (!order) return <Navigate to="/ordenes" replace />;
@@ -174,6 +177,7 @@ function WorkOrderRoute({ workOrders, installations, technicians, onBack, onUpda
       order={order}
       installations={installations}
       technicians={technicians}
+      settings={settings}
       onBack={onBack}
       onUpdateStatus={onUpdateStatus}
       onSaveWorkOrder={onSaveWorkOrder}
@@ -280,14 +284,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-200 text-appText">
-      <div className="mx-auto min-h-screen w-full max-w-md overflow-hidden bg-appBg shadow-2xl relative pb-16">
+      <div className="relative mx-auto min-h-screen w-full max-w-md overflow-hidden bg-appBg pb-16 shadow-2xl md:max-w-3xl lg:max-w-6xl">
         <Routes>
           <Route path="/" element={<HomeScreen installations={displayInstallations} workOrders={displayWorkOrders} onNavigate={navigateTo} onOpenInstallation={openInstallation} onOpenWorkOrder={openWorkOrder} />} />
           <Route path="/instalaciones" element={<InstallationsScreen installations={displayInstallations} assets={assets} workOrders={workOrders} onOpenInstallation={openInstallation} onSaveInstallation={handleSaveInstallation} onDeleteInstallation={handleDeleteInstallation} />} />
           <Route path="/instalaciones/:id" element={<InstallationRoute installations={displayInstallations} assets={assets} workOrders={displayWorkOrders} onBack={() => navigate("/instalaciones")} onSaveInstallation={handleSaveInstallation} onDeleteInstallation={handleDeleteInstallation} onSaveAsset={saveAsset} onOpenWorkOrder={openWorkOrder} onCreateWorkOrder={(installationId: string, defaults = {}) => { setNewWorkOrderDefaults({ installationId, ...defaults }); navigate("/ordenes/nueva"); }} />} />
           <Route path="/ordenes" element={<WorkOrdersScreen workOrders={displayWorkOrders} filter={workOrderFilter} setFilter={setWorkOrderFilter} onOpenWorkOrder={openWorkOrder} onNewWorkOrder={() => { setNewWorkOrderDefaults({}); navigate("/ordenes/nueva"); }} />} />
           <Route path="/ordenes/nueva" element={<NewWorkOrderScreen installations={displayInstallations} technicians={technicians} defaults={newWorkOrderDefaults} onBack={() => navigate(-1)} onCreate={handleCreateWorkOrder} />} />
-          <Route path="/ordenes/:id" element={<WorkOrderRoute workOrders={displayWorkOrders} installations={displayInstallations} technicians={technicians} onBack={() => navigate(-1)} onUpdateStatus={updateWorkOrderStatus} onSaveWorkOrder={saveWorkOrder} onDeleteWorkOrder={handleDeleteWorkOrder} />} />
+          <Route path="/ordenes/:id" element={<WorkOrderRoute workOrders={displayWorkOrders} installations={displayInstallations} technicians={technicians} settings={settings} onBack={() => navigate(-1)} onUpdateStatus={updateWorkOrderStatus} onSaveWorkOrder={saveWorkOrder} onDeleteWorkOrder={handleDeleteWorkOrder} />} />
           <Route path="/agenda" element={<AgendaScreen workOrders={displayWorkOrders} onOpenWorkOrder={openWorkOrder} onNewWorkOrder={() => { setNewWorkOrderDefaults({}); navigate("/ordenes/nueva"); }} />} />
           <Route path="/informes" element={<ReportsScreen workOrders={displayWorkOrders} installations={displayInstallations} settings={settings} />} />
           <Route path="/ajustes" element={<SettingsScreen settings={settings} technicians={technicians} onExportBackup={exportBackup} onImportBackup={handleImportBackup} onResetAllData={() => { reloadData(resetAllData()); navigate("/"); }} onSaveCompanySettings={saveCompanySettings} onSaveTechnician={saveTechnician} onDeleteTechnician={deleteTechnician} />} />

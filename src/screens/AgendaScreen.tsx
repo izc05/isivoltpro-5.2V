@@ -1,4 +1,4 @@
-import { CalendarPlus, ChevronRight, ClipboardCheck, MapPin, Plus, Settings, Zap } from "lucide-react";
+import { CalendarPlus, ChevronLeft, ChevronRight, ClipboardCheck, MapPin, Plus, Settings, Zap } from "lucide-react";
 import { useMemo, useState } from "react";
 import Card from "../components/Card";
 import Header from "../components/Header";
@@ -7,7 +7,27 @@ import { formatLongDay, formatMonthYear, getWeekDays, toDateInputValue } from ".
 
 export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrder }: any) {
   const [selectedDate, setSelectedDate] = useState(toDateInputValue(new Date()));
+  const [viewMode, setViewMode] = useState<"dia" | "mes">("dia");
   const days = getWeekDays(selectedDate);
+  const monthDays = useMemo(() => {
+    const selected = new Date(selectedDate);
+    const first = new Date(selected.getFullYear(), selected.getMonth(), 1);
+    const start = new Date(first);
+    const offset = first.getDay() || 7;
+    start.setDate(first.getDate() - offset + 1);
+    return Array.from({ length: 42 }, (_, index) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      const value = toDateInputValue(date);
+      return {
+        value,
+        day: date.getDate(),
+        currentMonth: date.getMonth() === selected.getMonth(),
+        selected: value === selectedDate,
+        count: workOrders.filter((order) => toDateInputValue(order.scheduledAt || order.createdAt) === value).length,
+      };
+    });
+  }, [selectedDate, workOrders]);
   const agenda = useMemo(
     () =>
       workOrders
@@ -18,6 +38,11 @@ export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrd
 
   const getAgendaTone = (order) =>
     order.type === "Correctiva" ? "bg-red-100 text-red-600" : order.type === "Parte de visita" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700";
+  const changeMonth = (amount: number) => {
+    const date = new Date(selectedDate);
+    date.setMonth(date.getMonth() + amount);
+    setSelectedDate(toDateInputValue(date));
+  };
 
   return (
     <>
@@ -34,6 +59,13 @@ export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrd
           </button>
         }
       >
+        <div className="mb-3 grid grid-cols-2 rounded-2xl bg-white/10 p-1 ring-1 ring-white/15">
+          {["dia", "mes"].map((mode) => (
+            <button key={mode} className={viewMode === mode ? "rounded-xl bg-white px-3 py-2 text-sm font-black text-primaryDark" : "px-3 py-2 text-sm font-black text-white"} onClick={() => setViewMode(mode as "dia" | "mes")}>
+              {mode === "dia" ? "Dia" : "Mes"}
+            </button>
+          ))}
+        </div>
         <div className="rounded-3xl bg-white p-3 text-appText shadow-soft">
           <div className="grid grid-cols-7 gap-1">
             {days.map((day) => (
@@ -52,6 +84,26 @@ export default function AgendaScreen({ workOrders, onOpenWorkOrder, onNewWorkOrd
       </Header>
 
       <main className="relative space-y-4 px-5 pb-32 pt-6">
+        {viewMode === "mes" ? (
+          <Card className="space-y-3">
+            <div className="flex items-center justify-between">
+              <button className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-100 text-primary" onClick={() => changeMonth(-1)}><ChevronLeft size={22} /></button>
+              <strong className="text-lg capitalize">{formatMonthYear(selectedDate)}</strong>
+              <button className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-100 text-primary" onClick={() => changeMonth(1)}><ChevronRight size={22} /></button>
+            </div>
+            <div className="grid grid-cols-7 gap-1 text-center text-xs font-black text-slate-500">
+              {["L", "M", "X", "J", "V", "S", "D"].map((label) => <span key={label}>{label}</span>)}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {monthDays.map((day) => (
+                <button key={day.value} className={day.selected ? "min-h-14 rounded-2xl bg-primaryDark p-1 text-cyan-200" : day.currentMonth ? "min-h-14 rounded-2xl bg-slate-50 p-1 text-slate-800" : "min-h-14 rounded-2xl bg-white p-1 text-slate-300"} onClick={() => setSelectedDate(day.value)}>
+                  <strong className="block text-sm">{day.day}</strong>
+                  {day.count ? <span className="mx-auto mt-1 grid h-6 min-w-6 place-items-center rounded-full bg-accent px-1 text-[11px] font-black text-primaryDark">{day.count}</span> : null}
+                </button>
+              ))}
+            </div>
+          </Card>
+        ) : null}
         <h2 className="px-1 text-2xl font-black capitalize">{formatLongDay(selectedDate)}</h2>
         {agenda.length ? <div className="absolute bottom-36 left-8 top-20 w-px bg-slate-200" /> : null}
         {agenda.map((order) => (

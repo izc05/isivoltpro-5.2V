@@ -1,7 +1,8 @@
-import { Plus, Save, Trash2, X } from "lucide-react";
+import { Camera, LocateFixed, Plus, Save, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import Button from "../Button";
 import { toDateInputValue } from "../../utils/dates";
+import { fileToDataUrl } from "../../utils/files";
 
 const TYPE_OPTIONS = ["Parte de visita", "Correctiva", "Preventiva"];
 const STATUS_OPTIONS = ["Pendiente", "Asignada", "En curso", "Observada", "Demorada", "Completada", "Cerrada"];
@@ -13,6 +14,7 @@ function normalizeMaterials(materials: any[] = []) {
     id: item.id || `material-${index}`,
     type: item.type || item.name || "",
     quantity: item.quantity || "",
+    photoUrl: item.photoUrl || "",
   }));
 }
 
@@ -35,6 +37,10 @@ export default function EditWorkOrderModal({ order, installations, technicians, 
     materials: normalizeMaterials(order.materials || []),
     initialPhotos: order.initialPhotos || [],
     finalPhotos: order.finalPhotos || [],
+    gpsLat: order.gpsLat || "",
+    gpsLng: order.gpsLng || "",
+    visitSignature: order.visitSignature,
+    closureSignature: order.closureSignature,
   });
 
   const update = (key: string, value: any) => setForm((current) => ({ ...current, [key]: value }));
@@ -44,7 +50,7 @@ export default function EditWorkOrderModal({ order, installations, technicians, 
       ...current,
       materials: [
         ...current.materials,
-        { id: `material-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, type: "", quantity: "1" },
+        { id: `material-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, type: "", quantity: "1", photoUrl: "" },
       ],
     }));
   };
@@ -59,6 +65,20 @@ export default function EditWorkOrderModal({ order, installations, technicians, 
       ...current,
       materials: current.materials.filter((item) => item.id !== id),
     }));
+  };
+  const uploadMaterialPhoto = async (id: string, file?: File) => {
+    if (!file) return;
+    updateMaterial(id, "photoUrl", await fileToDataUrl(file));
+  };
+  const captureGps = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition((position) => {
+      setForm((current) => ({
+        ...current,
+        gpsLat: String(position.coords.latitude),
+        gpsLng: String(position.coords.longitude),
+      }));
+    });
   };
 
   const save = () => {
@@ -135,6 +155,11 @@ export default function EditWorkOrderModal({ order, installations, technicians, 
             <input className="min-h-12 w-full rounded-2xl border border-slate-200 px-4 font-bold outline-none focus:border-accent" value={form.location} onChange={(e) => update("location", e.target.value)} />
           </label>
 
+          <button type="button" className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-cyan-300 bg-cyan-50 px-4 font-black text-primary" onClick={captureGps}>
+            <LocateFixed size={20} />
+            {form.gpsLat && form.gpsLng ? "GPS guardado" : "Guardar GPS de la intervencion"}
+          </button>
+
           <div className="grid grid-cols-[1.4fr_1fr] gap-3">
             <label className="block min-w-0">
               <span className="mb-1 block font-black text-slate-700">Fecha</span>
@@ -172,7 +197,11 @@ export default function EditWorkOrderModal({ order, installations, technicians, 
             </div>
             <div className="space-y-3">
               {form.materials.map((material: any) => (
-                <div key={material.id} className="grid grid-cols-[minmax(0,1fr)_84px_40px] gap-2">
+                <div key={material.id} className="grid grid-cols-[72px_minmax(0,1fr)_74px_40px] gap-2">
+                  <label className="grid h-16 cursor-pointer place-items-center overflow-hidden rounded-2xl border border-dashed border-cyan-300 bg-white text-primary">
+                    {material.photoUrl ? <img className="h-full w-full object-cover" src={material.photoUrl} alt="" /> : <Camera size={22} />}
+                    <input className="hidden" type="file" accept="image/*" onChange={(e) => uploadMaterialPhoto(material.id, e.target.files?.[0])} />
+                  </label>
                   <input className="min-h-11 min-w-0 rounded-2xl border border-slate-200 bg-white px-3 font-bold outline-none focus:border-accent" placeholder="Ej: Filtro, lampara, valvula" value={material.type} onChange={(e) => updateMaterial(material.id, "type", e.target.value)} />
                   <input className="min-h-11 min-w-0 rounded-2xl border border-slate-200 bg-white px-3 text-center font-bold outline-none focus:border-accent" placeholder="Cant." value={material.quantity} onChange={(e) => updateMaterial(material.id, "quantity", e.target.value)} />
                   <button type="button" className="grid h-11 w-10 place-items-center rounded-2xl bg-red-50 text-red-700" onClick={() => removeMaterial(material.id)} aria-label="Quitar material">

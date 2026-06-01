@@ -43,6 +43,75 @@ function materialSummary(materials = []) {
   return items.length ? items.join(", ") : "-";
 }
 
+function safeName(value) {
+  return String(value || "informe").toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+}
+
+export function generateWorkOrderReport(order, settings) {
+  const doc = getBasePdf(`Parte ${order.number}`, settings);
+  doc.setFontSize(12);
+  doc.setTextColor(30, 41, 59);
+  const rows = [
+    ["Tipo", order.type],
+    ["Estado", order.status],
+    ["Instalacion", order.installation],
+    ["Ubicacion", order.location || "-"],
+    ["Especialidad", order.specialty],
+    ["Prioridad", order.priority],
+    ["Tecnico", order.technician || "Sin asignar"],
+    ["Fecha", formatShortDate(order.scheduledAt || order.createdAt)],
+    ["Material instalado", materialSummary(order.materials)],
+  ];
+  if (order.gpsLat && order.gpsLng) rows.push(["GPS", `${order.gpsLat}, ${order.gpsLng}`]);
+
+  autoTable(doc, {
+    startY: 60,
+    head: [["Campo", "Detalle"]],
+    body: rows,
+    theme: "striped",
+    headStyles: { fillColor: [7, 57, 107] },
+    styles: { fontSize: 10 },
+  });
+
+  let y = (doc as any).lastAutoTable.finalY + 12;
+  doc.setFont("helvetica", "bold");
+  doc.text("Descripcion", 14, y);
+  doc.setFont("helvetica", "normal");
+  doc.text(doc.splitTextToSize(order.description || "-", 180), 14, y + 7);
+  y += 28;
+
+  if (order.actionTaken) {
+    doc.setFont("helvetica", "bold");
+    doc.text("Trabajo realizado", 14, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(doc.splitTextToSize(order.actionTaken, 180), 14, y + 7);
+    y += 28;
+  }
+
+  const signatures = [
+    ["Firma parte de visita", order.visitSignature],
+    ["Firma cierre OT", order.closureSignature],
+  ].filter(([, signature]) => signature?.dataUrl);
+  signatures.forEach(([label, signature]: any) => {
+    if (y > 235) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setFont("helvetica", "bold");
+    doc.text(label, 14, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(`${signature.name || "Firmado"} · ${new Date(signature.signedAt).toLocaleString("es-ES")}`, 14, y + 7);
+    try {
+      doc.addImage(signature.dataUrl, "PNG", 14, y + 12, 70, 28);
+    } catch {
+      doc.text("Firma adjunta no disponible en PDF.", 14, y + 14);
+    }
+    y += 48;
+  });
+
+  doc.save(`parte_${safeName(order.number)}.pdf`);
+}
+
 export function generateCorrectiveReport(workOrders, settings) {
   const doc = getBasePdf("Partes Correctivos", settings);
   const correctives = workOrders.filter((o) => o.type === "Correctiva");

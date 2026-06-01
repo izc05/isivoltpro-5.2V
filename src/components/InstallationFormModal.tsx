@@ -1,6 +1,8 @@
+import type React from "react";
 import { Building2, Camera, Check, Mail, MapPin, Phone, User, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Button from "./Button";
+import { fileToDataUrl } from "../utils/files";
 
 export const INSTALLATION_TYPES = [
   { value: "hospital", label: "Hospital" },
@@ -100,6 +102,12 @@ export default function InstallationFormModal({ installation, onClose, onSave })
 
   const title = useMemo(() => (isEditing ? "Editar instalacion" : "Nueva instalacion"), [isEditing]);
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const uploadPhoto = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    update("imageUrl", await fileToDataUrl(file));
+    event.target.value = "";
+  };
 
   const submit = (event) => {
     event.preventDefault();
@@ -138,6 +146,10 @@ export default function InstallationFormModal({ installation, onClose, onSave })
             <TextField label="Email" icon={Mail} value={form.email} type="email" onChange={(value) => update("email", value)} />
           </div>
           <TextField label="Foto principal URL" icon={Camera} value={form.imageUrl} placeholder="https://..." onChange={(value) => update("imageUrl", value)} />
+          <label className="grid min-h-12 cursor-pointer place-items-center rounded-2xl border border-dashed border-cyan-300 bg-cyan-50 px-4 text-sm font-black text-primary">
+            Subir foto de la instalacion
+            <input className="hidden" type="file" accept="image/*" onChange={uploadPhoto} />
+          </label>
           <label className="block">
             <span className="mb-1.5 block text-sm font-black text-slate-700">Observaciones</span>
             <textarea

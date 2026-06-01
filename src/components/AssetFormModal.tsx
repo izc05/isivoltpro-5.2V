@@ -1,6 +1,8 @@
+import type React from "react";
 import { Check, ClipboardList, Cpu, Image, MapPin, Tag, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Button from "./Button";
+import { fileToDataUrl } from "../utils/files";
 
 export const ASSET_SPECIALTIES = [
   { value: "electricidad", label: "Electricidad" },
@@ -88,6 +90,12 @@ export default function AssetFormModal({ asset, onClose, onSave }) {
 
   const title = useMemo(() => (isEditing ? "Editar activo" : "Nuevo activo"), [isEditing]);
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const uploadPhoto = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    update("imageUrl", await fileToDataUrl(file));
+    event.target.value = "";
+  };
 
   const submit = (event) => {
     event.preventDefault();
@@ -123,6 +131,10 @@ export default function AssetFormModal({ asset, onClose, onSave }) {
           <SelectField label="Especialidad" value={form.specialty} onChange={(value) => update("specialty", value)} options={ASSET_SPECIALTIES} />
           <TextField label="Ubicacion" icon={MapPin} value={form.location} placeholder="Ej: Cuarto de calderas" required onChange={(value) => update("location", value)} />
           <TextField label="Imagen URL" icon={Image} value={form.imageUrl} placeholder="https://..." onChange={(value) => update("imageUrl", value)} />
+          <label className="grid min-h-12 cursor-pointer place-items-center rounded-2xl border border-dashed border-cyan-300 bg-cyan-50 px-4 text-sm font-black text-primary">
+            Subir foto del activo
+            <input className="hidden" type="file" accept="image/*" onChange={uploadPhoto} />
+          </label>
           
           <label className="block">
             <span className="mb-1.5 block text-sm font-black text-slate-700">Observaciones y datos tecnicos</span>
