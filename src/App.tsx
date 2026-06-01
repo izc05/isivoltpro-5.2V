@@ -8,8 +8,10 @@ import InstallationsScreen from "./screens/InstallationsScreen";
 import NewWorkOrderScreen from "./screens/NewWorkOrderScreen";
 import ReportsScreen from "./screens/ReportsScreen";
 import SettingsScreen from "./screens/SettingsScreen";
+import TechniciansScreen from "./screens/TechniciansScreen";
 import WorkOrderDetailScreen from "./screens/WorkOrderDetailScreen";
 import WorkOrdersScreen from "./screens/WorkOrdersScreen";
+import DesktopNav from "./components/DesktopNav";
 import { exportBackup, importBackup } from "./services/backupService";
 import { resetAllData, saveAssets, saveInstallations, saveSettings, saveTechnicians, saveWorkOrders } from "./services/storage";
 import { useStore } from "./store/useStore";
@@ -220,6 +222,7 @@ export default function App() {
       installations: "/instalaciones",
       workOrders: "/ordenes",
       agenda: "/agenda",
+      technicians: "/tecnicos",
       reports: "/informes",
       settings: "/ajustes",
       newWorkOrder: "/ordenes/nueva",
@@ -277,22 +280,25 @@ export default function App() {
     if (path.startsWith("/instalaciones")) return "installations";
     if (path.startsWith("/ordenes")) return "workOrders";
     if (path.startsWith("/agenda")) return "agenda";
+    if (path.startsWith("/tecnicos")) return "technicians";
     if (path.startsWith("/informes")) return "reports";
     if (path.startsWith("/ajustes")) return "settings";
     return "home";
   };
 
   return (
-    <div className="min-h-screen bg-slate-200 text-appText">
-      <div className="relative mx-auto min-h-screen w-full max-w-md overflow-hidden bg-appBg pb-16 shadow-2xl md:max-w-3xl lg:max-w-6xl">
+    <div className="min-h-screen bg-slate-200 text-appText lg:bg-appBg">
+      <div className="relative mx-auto min-h-screen w-full max-w-md overflow-hidden bg-appBg pb-16 shadow-2xl md:max-w-3xl lg:max-w-none lg:overflow-visible lg:pb-0 lg:pl-72 lg:shadow-none">
+        <DesktopNav current={getActiveTab()} onNavigate={navigateTo} />
         <Routes>
-          <Route path="/" element={<HomeScreen installations={displayInstallations} workOrders={displayWorkOrders} onNavigate={navigateTo} onOpenInstallation={openInstallation} onOpenWorkOrder={openWorkOrder} />} />
+          <Route path="/" element={<HomeScreen installations={displayInstallations} workOrders={displayWorkOrders} technicians={technicians} onNavigate={navigateTo} onOpenInstallation={openInstallation} onOpenWorkOrder={openWorkOrder} onNewWorkOrderWithGps={(gps: any) => { setNewWorkOrderDefaults(gps ? { gpsLat: String(gps.lat), gpsLng: String(gps.lng) } : {}); navigate("/ordenes/nueva"); }} />} />
           <Route path="/instalaciones" element={<InstallationsScreen installations={displayInstallations} assets={assets} workOrders={workOrders} onOpenInstallation={openInstallation} onSaveInstallation={handleSaveInstallation} onDeleteInstallation={handleDeleteInstallation} />} />
           <Route path="/instalaciones/:id" element={<InstallationRoute installations={displayInstallations} assets={assets} workOrders={displayWorkOrders} onBack={() => navigate("/instalaciones")} onSaveInstallation={handleSaveInstallation} onDeleteInstallation={handleDeleteInstallation} onSaveAsset={saveAsset} onOpenWorkOrder={openWorkOrder} onCreateWorkOrder={(installationId: string, defaults = {}) => { setNewWorkOrderDefaults({ installationId, ...defaults }); navigate("/ordenes/nueva"); }} />} />
           <Route path="/ordenes" element={<WorkOrdersScreen workOrders={displayWorkOrders} filter={workOrderFilter} setFilter={setWorkOrderFilter} onOpenWorkOrder={openWorkOrder} onNewWorkOrder={() => { setNewWorkOrderDefaults({}); navigate("/ordenes/nueva"); }} />} />
           <Route path="/ordenes/nueva" element={<NewWorkOrderScreen installations={displayInstallations} technicians={technicians} defaults={newWorkOrderDefaults} onBack={() => navigate(-1)} onCreate={handleCreateWorkOrder} />} />
           <Route path="/ordenes/:id" element={<WorkOrderRoute workOrders={displayWorkOrders} installations={displayInstallations} technicians={technicians} settings={settings} onBack={() => navigate(-1)} onUpdateStatus={updateWorkOrderStatus} onSaveWorkOrder={saveWorkOrder} onDeleteWorkOrder={handleDeleteWorkOrder} />} />
           <Route path="/agenda" element={<AgendaScreen workOrders={displayWorkOrders} onOpenWorkOrder={openWorkOrder} onNewWorkOrder={() => { setNewWorkOrderDefaults({}); navigate("/ordenes/nueva"); }} />} />
+          <Route path="/tecnicos" element={<TechniciansScreen technicians={technicians} workOrders={displayWorkOrders} onSaveTechnician={saveTechnician} onDeleteTechnician={deleteTechnician} />} />
           <Route path="/informes" element={<ReportsScreen workOrders={displayWorkOrders} installations={displayInstallations} settings={settings} />} />
           <Route path="/ajustes" element={<SettingsScreen settings={settings} technicians={technicians} onExportBackup={exportBackup} onImportBackup={handleImportBackup} onResetAllData={() => { reloadData(resetAllData()); navigate("/"); }} onSaveCompanySettings={saveCompanySettings} onSaveTechnician={saveTechnician} onDeleteTechnician={deleteTechnician} />} />
           <Route path="*" element={<Navigate to="/" replace />} />

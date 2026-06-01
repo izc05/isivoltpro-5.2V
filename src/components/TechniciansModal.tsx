@@ -50,7 +50,7 @@ function SelectField({ label, value, onChange, options }) {
 
 export default function TechniciansModal({ technicians, onClose, onSave, onDelete }) {
   const [isAdding, setIsAdding] = useState(false);
-  const [form, setForm] = useState({ name: "", specialty: "general", phone: "", email: "" });
+  const [form, setForm] = useState({ name: "", specialty: "general", phone: "", email: "", shift: "", status: "disponible", notes: "" });
 
   const update = (key, value) => setForm((current) => ({ ...current, [key]: value }));
 
@@ -58,7 +58,7 @@ export default function TechniciansModal({ technicians, onClose, onSave, onDelet
     event.preventDefault();
     onSave(null, form);
     setIsAdding(false);
-    setForm({ name: "", specialty: "general", phone: "", email: "" });
+    setForm({ name: "", specialty: "general", phone: "", email: "", shift: "", status: "disponible", notes: "" });
   };
 
   const askDelete = (tech) => {
@@ -94,7 +94,7 @@ export default function TechniciansModal({ technicians, onClose, onSave, onDelet
                       </div>
                       <div>
                         <strong className="block text-lg">{tech.name}</strong>
-                        <p className="text-sm font-semibold text-slate-500 capitalize">{tech.specialty}</p>
+                        <p className="text-sm font-semibold text-slate-500 capitalize">{tech.specialty} · {tech.phone || "sin telefono"}</p>
                       </div>
                     </div>
                     <button className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-red-400 active:bg-red-50" onClick={() => askDelete(tech)}>
@@ -119,6 +119,14 @@ export default function TechniciansModal({ technicians, onClose, onSave, onDelet
                 <TextField label="Telefono" icon={Phone} type="tel" value={form.phone} onChange={(value) => update("phone", value)} />
                 <TextField label="Correo" icon={Mail} type="email" value={form.email} onChange={(value) => update("email", value)} />
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <TextField label="Turno" icon={Wrench} value={form.shift} onChange={(value) => update("shift", value)} />
+                <TextField label="Estado" icon={Check} value={form.status} onChange={(value) => update("status", value)} />
+              </div>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-black text-slate-700">Notas</span>
+                <textarea className="min-h-20 w-full resize-none rounded-2xl border border-slate-200 bg-white p-4 font-bold outline-none focus:border-accent" value={form.notes} onChange={(event) => update("notes", event.target.value)} />
+              </label>
               <div className="grid grid-cols-[1fr_1.3fr] gap-3 pt-2">
                 <Button type="button" variant="outline" onClick={() => setIsAdding(false)}>
                   Cancelar

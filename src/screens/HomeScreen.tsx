@@ -1,4 +1,5 @@
-import { AlertTriangle, ArrowRight, BriefcaseBusiness, Building2, CalendarDays, ClipboardCheck, ClipboardPlus, Flag, ShieldCheck, Wrench } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, BriefcaseBusiness, Building2, CalendarDays, ClipboardCheck, ClipboardPlus, Flag, LocateFixed, MapPin, ShieldCheck, UserRoundCog, Wrench } from "lucide-react";
+import { useState } from "react";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import Header from "../components/Header";
@@ -28,7 +29,9 @@ const priorityStyles = {
   Baja: "bg-slate-100 text-slate-600",
 };
 
-export default function HomeScreen({ installations, workOrders, onNavigate, onOpenInstallation, onOpenWorkOrder }: any) {
+export default function HomeScreen({ installations, workOrders, technicians = [], onNavigate, onOpenInstallation, onOpenWorkOrder, onNewWorkOrderWithGps }: any) {
+  const [gps, setGps] = useState<any>(null);
+  const [gpsError, setGpsError] = useState("");
   const openOrders = workOrders.filter((order) => openStatuses.has(order.rawStatus));
   const closedOrders = workOrders.filter((order) => closedStatuses.has(order.rawStatus));
   const nextOrder = openOrders[0] || workOrders[0];
@@ -45,6 +48,22 @@ export default function HomeScreen({ installations, workOrders, onNavigate, onOp
     .filter((order) => order.rawType === "preventiva" && openStatuses.has(order.rawStatus))
     .sort((a, b) => new Date(a.scheduledAt || a.createdAt).getTime() - new Date(b.scheduledAt || b.createdAt).getTime())
     .slice(0, 2);
+  const movements = [...workOrders]
+    .sort((a, b) => new Date(b.updatedAt || b.completedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.completedAt || a.createdAt).getTime())
+    .slice(0, 5);
+  const locatedOrders = workOrders.filter((order) => order.gpsLat && order.gpsLng).length;
+  const captureGps = () => {
+    setGpsError("");
+    if (!navigator.geolocation) {
+      setGpsError("GPS no disponible en este navegador.");
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => setGps({ lat: position.coords.latitude, lng: position.coords.longitude }),
+      () => setGpsError("No se pudo obtener la localizacion."),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   return (
     <>
@@ -59,7 +78,8 @@ export default function HomeScreen({ installations, workOrders, onNavigate, onOp
         </div>
       </Header>
 
-      <main className="space-y-6 px-5 pb-32 pt-6">
+      <main className="space-y-6 px-5 pb-32 pt-6 lg:grid lg:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)] lg:items-start lg:gap-6 lg:space-y-0 lg:px-8 xl:grid-cols-[minmax(0,1.5fr)_420px]">
+        <div className="space-y-6">
         <Card className="relative overflow-hidden border-sky-100 bg-white">
           <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-cyan-300 via-sky-400 to-amber-300" />
           {nextOrder ? (
@@ -135,7 +155,7 @@ export default function HomeScreen({ installations, workOrders, onNavigate, onOp
         </Section>
 
         <Section title="Flujo de trabajo">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
             <button className="rounded-3xl bg-white p-4 text-left shadow-soft" onClick={() => onNavigate("newWorkOrder")}>
               <ClipboardCheck className="mb-3 text-emerald-600" size={28} />
               <strong className="block text-primaryDark">Parte de visita</strong>
@@ -155,6 +175,11 @@ export default function HomeScreen({ installations, workOrders, onNavigate, onOp
               <Building2 className="mb-3 text-primary" size={28} />
               <strong className="block text-primaryDark">Instalaciones</strong>
               <span className="mt-1 block text-sm font-semibold text-slate-500">Activos, QR y ubicaciones.</span>
+            </button>
+            <button className="rounded-3xl bg-white p-4 text-left shadow-soft" onClick={() => onNavigate("technicians")}>
+              <UserRoundCog className="mb-3 text-violet-600" size={28} />
+              <strong className="block text-primaryDark">{technicians.length} tecnicos</strong>
+              <span className="mt-1 block text-sm font-semibold text-slate-500">Equipo y datos de contacto.</span>
             </button>
           </div>
         </Section>
@@ -182,6 +207,52 @@ export default function HomeScreen({ installations, workOrders, onNavigate, onOp
             ))}
           </div>
         </Section>
+        </div>
+
+        <aside className="space-y-6">
+          <Section title="Movimientos de OT">
+            <Card className="divide-y divide-slate-100 p-0">
+              {movements.map((order) => (
+                <button key={order.id} className="flex w-full items-start gap-3 px-4 py-4 text-left" onClick={() => onOpenWorkOrder(order.id)}>
+                  <div className={order.rawStatus === "completada" || order.rawStatus === "cerrada" ? "grid h-11 w-11 place-items-center rounded-2xl bg-emerald-100 text-emerald-700" : "grid h-11 w-11 place-items-center rounded-2xl bg-cyan-100 text-primary"}>
+                    <Activity size={22} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <strong className="truncate text-primaryDark">{order.number}</strong>
+                      <StatusBadge status={order.status} className="shrink-0 text-xs" />
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-sm font-semibold text-slate-500">{order.title}</p>
+                    <p className="mt-1 truncate text-xs font-black uppercase text-primary/70">{order.installation}</p>
+                  </div>
+                </button>
+              ))}
+            </Card>
+          </Section>
+
+          <Section title="Localizacion">
+            <Card className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-cyan-100 text-primary">
+                  <MapPin size={25} />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-primaryDark">Ubicaciones y GPS</h2>
+                  <p className="mt-1 text-sm font-semibold text-slate-500">{locatedOrders} OT con coordenadas guardadas.</p>
+                </div>
+              </div>
+              {gps ? (
+                <div className="rounded-2xl bg-slate-50 p-3 text-sm font-bold text-slate-700">
+                  Lat {gps.lat.toFixed(5)} · Lng {gps.lng.toFixed(5)}
+                </div>
+              ) : null}
+              {gpsError ? <p className="rounded-2xl bg-amber-50 p-3 text-sm font-black text-amber-800">{gpsError}</p> : null}
+              <div className="grid grid-cols-2 gap-3">
+                <Button icon={LocateFixed} variant="outline" onClick={captureGps}>Detectar</Button>
+                <Button icon={ClipboardPlus} onClick={() => onNewWorkOrderWithGps(gps)}>OT GPS</Button>
+              </div>
+            </Card>
+          </Section>
 
         <button className="w-full overflow-hidden rounded-app bg-[radial-gradient(circle_at_left,#155E75,#173B72_48%,#071426)] p-5 text-left text-white shadow-soft" onClick={() => nextInstallation ? onOpenInstallation(nextInstallation.id) : onNavigate("installations")}>
           <div className="flex items-center gap-5">
@@ -194,6 +265,7 @@ export default function HomeScreen({ installations, workOrders, onNavigate, onOp
             </div>
           </div>
         </button>
+        </aside>
       </main>
     </>
   );
