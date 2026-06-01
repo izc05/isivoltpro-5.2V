@@ -11,7 +11,7 @@ const filters = [
   ...INSTALLATION_STATUSES.map((item) => ({ id: `status:${item.value}`, label: item.label })),
 ];
 
-function InstallationVisual({ visual }) {
+function InstallationVisual({ visual, className = "h-28 w-28 rounded-3xl" }) {
   const icons = {
     hospital: Building2,
     clinic: Building2,
@@ -21,7 +21,7 @@ function InstallationVisual({ visual }) {
   };
   const Icon = icons[visual] || Building2;
   return (
-    <div className="grid h-28 w-28 shrink-0 place-items-center rounded-3xl bg-[radial-gradient(circle_at_top_left,#155E75,#173B72)] text-cyan-200">
+    <div className={`grid shrink-0 place-items-center bg-[radial-gradient(circle_at_top_left,#155E75,#173B72)] text-cyan-200 ${className}`}>
       <Icon size={46} strokeWidth={2.2} />
     </div>
   );
@@ -145,18 +145,18 @@ export default function InstallationsScreen({ installations, assets, workOrders,
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-3">
           {visibleInstallations.map((installation) => (
             <Card key={installation.id} className="overflow-hidden p-0">
               <div className={`h-2 bg-gradient-to-r ${getInstallationStripe(installation.type)}`} />
-              <div className="flex w-full items-center gap-4 p-4 text-left">
+              <div className="w-full p-4 text-left">
                 {installation.imageUrl ? (
-                  <button onClick={() => onOpenInstallation(installation.id)} aria-label={`Imagen de ${installation.name}`}>
-                    <img className="h-28 w-28 shrink-0 rounded-3xl object-cover" src={installation.imageUrl} alt="" />
+                  <button className="mb-4 block w-full overflow-hidden rounded-3xl" onClick={() => onOpenInstallation(installation.id)} aria-label={`Imagen de ${installation.name}`}>
+                    <img className="h-44 w-full object-cover" src={installation.imageUrl} alt="" />
                   </button>
                 ) : (
-                  <button onClick={() => onOpenInstallation(installation.id)} aria-label={`Imagen de ${installation.name}`}>
-                    <InstallationVisual visual={installation.visual} />
+                  <button className="mb-4 block w-full overflow-hidden rounded-3xl" onClick={() => onOpenInstallation(installation.id)} aria-label={`Imagen de ${installation.name}`}>
+                    <InstallationVisual visual={installation.visual} className="h-44 w-full rounded-3xl" />
                   </button>
                 )}
                 <div className="min-w-0 flex-1">
@@ -174,6 +174,7 @@ export default function InstallationsScreen({ installations, assets, workOrders,
                       <ShieldCheck size={18} className="text-primary" />
                       {installation.assetsCount} activos
                     </span>
+                    <span className="text-sm font-black text-primary">{installation.locations?.length || 0} QR</span>
                     <div className="flex items-center gap-2">
                       <button className="grid h-9 w-9 place-items-center rounded-xl bg-blue-50 text-blue-700" onClick={() => setEditingInstallation(installation)} aria-label={`Editar ${installation.name}`}>
                         <Edit3 size={17} />

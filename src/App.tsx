@@ -294,10 +294,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-200 text-appText lg:bg-appBg">
-      <div className="relative mx-auto min-h-screen w-full max-w-md overflow-hidden bg-appBg pb-16 shadow-2xl md:max-w-3xl lg:max-w-none lg:overflow-visible lg:pb-0 lg:pl-72 lg:shadow-none">
+      <div className="relative mx-auto min-h-screen w-full max-w-md overflow-hidden bg-appBg pb-16 shadow-2xl md:max-w-3xl lg:max-w-none lg:overflow-visible lg:pb-0 lg:pl-80 lg:shadow-none">
         <DesktopNav current={getActiveTab()} onNavigate={navigateTo} />
         <Routes>
-          <Route path="/" element={<HomeScreen installations={displayInstallations} workOrders={displayWorkOrders} technicians={technicians} onNavigate={navigateTo} onOpenInstallation={openInstallation} onOpenWorkOrder={openWorkOrder} onNewWorkOrderWithGps={(gps: any) => { setNewWorkOrderDefaults(gps ? { gpsLat: String(gps.lat), gpsLng: String(gps.lng) } : {}); navigate("/ordenes/nueva"); }} />} />
+          <Route path="/" element={<HomeScreen installations={displayInstallations} workOrders={displayWorkOrders} technicians={technicians} assets={assets} onNavigate={navigateTo} onOpenInstallation={openInstallation} onOpenWorkOrder={openWorkOrder} onNewWorkOrderWithGps={(gps: any) => { setNewWorkOrderDefaults(gps ? { gpsLat: String(gps.lat), gpsLng: String(gps.lng) } : {}); navigate("/ordenes/nueva"); }} />} />
           <Route path="/instalaciones" element={<InstallationsScreen installations={displayInstallations} assets={assets} workOrders={workOrders} onOpenInstallation={openInstallation} onSaveInstallation={handleSaveInstallation} onDeleteInstallation={handleDeleteInstallation} />} />
           <Route path="/instalaciones/:id" element={<InstallationRoute installations={displayInstallations} assets={assets} workOrders={displayWorkOrders} onBack={() => navigate("/instalaciones")} onSaveInstallation={handleSaveInstallation} onDeleteInstallation={handleDeleteInstallation} onSaveAsset={saveAsset} onOpenWorkOrder={openWorkOrder} onCreateWorkOrder={(installationId: string, defaults = {}) => { setNewWorkOrderDefaults({ installationId, ...defaults }); navigate("/ordenes/nueva"); }} />} />
           <Route path="/ordenes" element={<WorkOrdersScreen workOrders={displayWorkOrders} filter={workOrderFilter} setFilter={setWorkOrderFilter} onOpenWorkOrder={openWorkOrder} onNewWorkOrder={() => { setNewWorkOrderDefaults({}); navigate("/ordenes/nueva"); }} />} />

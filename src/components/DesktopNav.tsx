@@ -13,7 +13,7 @@ const items = [
 
 export default function DesktopNav({ current, onNavigate }: any) {
   return (
-    <aside className="fixed bottom-0 top-0 z-40 hidden w-72 border-r border-white/10 bg-[radial-gradient(circle_at_top_left,#155E75_0%,#173B72_46%,#071426_100%)] p-5 text-white shadow-2xl lg:block">
+    <aside className="fixed bottom-0 left-0 top-0 z-40 hidden w-80 border-r border-white/10 bg-[radial-gradient(circle_at_top_left,#155E75_0%,#173B72_46%,#071426_100%)] p-5 text-white shadow-2xl lg:block">
       <div className="flex h-full flex-col">
         <button className="mb-7 flex items-center gap-3 text-left" onClick={() => onNavigate("home")}>
           <div className="grid h-14 w-14 place-items-center rounded-2xl border border-accent/40 bg-white/10 text-accent">

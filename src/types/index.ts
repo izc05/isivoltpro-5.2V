@@ -13,6 +13,11 @@ export interface Installation {
   contact?: string;
   phone?: string;
   email?: string;
+  contract?: string;
+  schedule?: string;
+  accessNotes?: string;
+  maintenancePlan?: string;
+  criticality?: string;
   gpsLat?: string;
   gpsLng?: string;
   locations?: InstallationLocation[];

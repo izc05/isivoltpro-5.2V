@@ -16,8 +16,8 @@ export default function Header({ title, subtitle, eyebrow, actions, onBack, comp
   return (
     <header
       className={classNames(
-        "relative overflow-hidden rounded-b-[44px] bg-[radial-gradient(circle_at_top_left,#155E75_0%,#173B72_42%,#071426_100%)] px-6 text-white shadow-soft",
-        compact ? "pb-12 pt-8" : "pb-16 pt-10"
+        "relative overflow-hidden rounded-b-[44px] bg-[radial-gradient(circle_at_top_left,#155E75_0%,#173B72_42%,#071426_100%)] px-6 text-white shadow-soft lg:rounded-b-[34px] lg:px-8",
+        compact ? "pb-12 pt-8" : "pb-16 pt-10 lg:pb-12"
       )}
     >
       <div className="absolute right-16 top-20 h-32 w-32 rounded-full bg-cyan-300/12 blur-[1px]" />

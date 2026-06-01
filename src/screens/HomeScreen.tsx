@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, ArrowRight, BriefcaseBusiness, Building2, CalendarDays, ClipboardCheck, ClipboardPlus, Flag, LocateFixed, MapPin, ShieldCheck, UserRoundCog, Wrench } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, BriefcaseBusiness, Building2, CalendarDays, ClipboardCheck, ClipboardPlus, FileText, Flag, LocateFixed, MapPin, QrCode, ShieldCheck, UserRoundCog, Wrench } from "lucide-react";
 import { useState } from "react";
 import Button from "../components/Button";
 import Card from "../components/Card";
@@ -29,7 +29,7 @@ const priorityStyles = {
   Baja: "bg-slate-100 text-slate-600",
 };
 
-export default function HomeScreen({ installations, workOrders, technicians = [], onNavigate, onOpenInstallation, onOpenWorkOrder, onNewWorkOrderWithGps }: any) {
+export default function HomeScreen({ installations, workOrders, technicians = [], assets = [], onNavigate, onOpenInstallation, onOpenWorkOrder, onNewWorkOrderWithGps }: any) {
   const [gps, setGps] = useState<any>(null);
   const [gpsError, setGpsError] = useState("");
   const openOrders = workOrders.filter((order) => openStatuses.has(order.rawStatus));
@@ -52,6 +52,9 @@ export default function HomeScreen({ installations, workOrders, technicians = []
     .sort((a, b) => new Date(b.updatedAt || b.completedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.completedAt || a.createdAt).getTime())
     .slice(0, 5);
   const locatedOrders = workOrders.filter((order) => order.gpsLat && order.gpsLng).length;
+  const locationCount = installations.reduce((total, installation) => total + (installation.locations?.length || 0), 0);
+  const documentCount = installations.reduce((total, installation) => total + (installation.documents?.length || 0), 0) + assets.reduce((total, asset) => total + (asset.documents?.length || 0), 0);
+  const installationPreview = installations.slice(0, 6);
   const captureGps = () => {
     setGpsError("");
     if (!navigator.geolocation) {
@@ -84,7 +87,7 @@ export default function HomeScreen({ installations, workOrders, technicians = []
           <div className="absolute inset-x-0 top-0 h-2 bg-gradient-to-r from-cyan-300 via-sky-400 to-amber-300" />
           {nextOrder ? (
           <>
-          <div className="grid grid-cols-[1fr_112px] items-start gap-4">
+          <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_240px]">
             <div className="min-w-0">
               <p className="font-bold text-slate-500">{openOrders.length ? "Siguiente trabajo" : "Ultimo trabajo"}</p>
               <h2 className="mt-2 text-3xl font-black leading-none text-primaryDark">{nextInstallation?.name || "Sin instalacion"}</h2>
@@ -93,10 +96,10 @@ export default function HomeScreen({ installations, workOrders, technicians = []
                 {nextOrder.title}
               </p>
             </div>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <StatusBadge status={nextOrder.status} />
               {nextInstallation?.imageUrl ? (
-                <img className="h-24 w-28 rounded-3xl object-cover" src={nextInstallation.imageUrl} alt="" />
+                <img className="h-36 w-full rounded-3xl object-cover md:h-44" src={nextInstallation.imageUrl} alt="" />
               ) : null}
             </div>
           </div>
@@ -124,6 +127,57 @@ export default function HomeScreen({ installations, workOrders, technicians = []
             </div>
           )}
         </Card>
+
+        <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+          {[
+            [Building2, installations.length, "Instalaciones"],
+            [ShieldCheck, assets.length, "Activos"],
+            [BriefcaseBusiness, openOrders.length, "OT abiertas"],
+            [QrCode, locationCount, "Ubicaciones QR"],
+            [FileText, documentCount, "Documentos"],
+            [UserRoundCog, technicians.length, "Tecnicos"],
+          ].map(([Icon, value, label]: any) => (
+            <Card key={label} className="p-4">
+              <Icon className="text-primary" size={24} />
+              <strong className="mt-3 block text-3xl font-black text-primaryDark">{value}</strong>
+              <span className="text-sm font-bold text-slate-500">{label}</span>
+            </Card>
+          ))}
+        </div>
+
+        <Section
+          title="Instalaciones"
+          action={
+            <button className="flex items-center gap-1 font-black text-primary" onClick={() => onNavigate("installations")}>
+              Ver todas <ArrowRight size={18} />
+            </button>
+          }
+        >
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {installationPreview.map((installation) => (
+              <button key={installation.id} className="overflow-hidden rounded-3xl bg-white text-left shadow-soft" onClick={() => onOpenInstallation(installation.id)}>
+                {installation.imageUrl ? (
+                  <img className="h-36 w-full object-cover" src={installation.imageUrl} alt="" />
+                ) : (
+                  <div className="grid h-36 place-items-center bg-[radial-gradient(circle_at_top_left,#155E75,#173B72)] text-cyan-200">
+                    <Building2 size={42} />
+                  </div>
+                )}
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <strong className="line-clamp-2 text-lg leading-tight text-primaryDark">{installation.name}</strong>
+                    <StatusBadge status={installation.status} className="shrink-0 text-xs" />
+                  </div>
+                  <p className="mt-2 line-clamp-2 text-sm font-semibold text-slate-500">{installation.address}</p>
+                  <div className="mt-3 flex items-center justify-between text-xs font-black uppercase text-primary/70">
+                    <span>{installation.assetsCount} activos</span>
+                    <span>{installation.locations?.length || 0} QR</span>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </Section>
 
         <Section
           title="Prioridad"

@@ -32,6 +32,11 @@ const EMPTY_FORM = {
   responsible: "",
   phone: "",
   email: "",
+  contract: "",
+  schedule: "",
+  accessNotes: "",
+  maintenancePlan: "",
+  criticality: "media",
   status: "en_servicio",
   imageUrl: "",
   notes: "",
@@ -48,6 +53,11 @@ function getInitialForm(installation) {
     responsible: installation.responsible || "",
     phone: installation.phone || "",
     email: installation.email || "",
+    contract: installation.contract || "",
+    schedule: installation.schedule || "",
+    accessNotes: installation.accessNotes || "",
+    maintenancePlan: installation.maintenancePlan || "",
+    criticality: installation.criticality || "media",
     status: installation.rawStatus || installation.status || "en_servicio",
     imageUrl: installation.imageUrl || "",
     notes: installation.notes || "",
@@ -145,6 +155,13 @@ export default function InstallationFormModal({ installation, onClose, onSave })
             <TextField label="Telefono" icon={Phone} value={form.phone} type="tel" onChange={(value) => update("phone", value)} />
             <TextField label="Email" icon={Mail} value={form.email} type="email" onChange={(value) => update("email", value)} />
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <TextField label="Contrato" value={form.contract} placeholder="Ej: Integral, basico..." onChange={(value) => update("contract", value)} />
+            <TextField label="Criticidad" value={form.criticality} placeholder="Alta, media, baja" onChange={(value) => update("criticality", value)} />
+          </div>
+          <TextField label="Horario de acceso" value={form.schedule} placeholder="Ej: L-V 08:00-18:00" onChange={(value) => update("schedule", value)} />
+          <TextField label="Plan de mantenimiento" value={form.maintenancePlan} placeholder="Ej: Mensual / trimestral" onChange={(value) => update("maintenancePlan", value)} />
+          <TextField label="Acceso y seguridad" value={form.accessNotes} placeholder="Llaves, permisos, avisos previos..." onChange={(value) => update("accessNotes", value)} />
           <TextField label="Foto principal URL" icon={Camera} value={form.imageUrl} placeholder="https://..." onChange={(value) => update("imageUrl", value)} />
           <label className="grid min-h-12 cursor-pointer place-items-center rounded-2xl border border-dashed border-cyan-300 bg-cyan-50 px-4 text-sm font-black text-primary">
             Subir foto de la instalacion

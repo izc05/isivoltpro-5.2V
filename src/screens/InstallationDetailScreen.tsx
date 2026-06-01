@@ -277,10 +277,14 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
         <section>
           <h2 className="mb-3 px-1 text-lg font-black">Informacion</h2>
           <Card className="divide-y divide-slate-100 p-0">
-            {[
+            {[ 
               [User, "Responsable", installation.responsible],
               [Phone, "Telefono", installation.phone],
               [MapPin, "Direccion", installation.address],
+              [ShieldCheck, "Contrato", installation.contract || "Sin contrato"],
+              [Wrench, "Plan", installation.maintenancePlan || "Sin plan definido"],
+              [CalendarDays, "Horario", installation.schedule || "Sin horario"],
+              [ShieldCheck, "Criticidad", installation.criticality || "Media"],
               [CalendarDays, "Ultima actualizacion", formatDateTime(installation.lastUpdate)],
             ].map(([Icon, label, value]: any) => (
               <div key={label} className="flex items-center gap-4 px-5 py-4">
@@ -290,6 +294,12 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
               </div>
             ))}
           </Card>
+          {installation.accessNotes ? (
+            <Card className="mt-3 bg-amber-50">
+              <h3 className="font-black text-amber-900">Acceso y seguridad</h3>
+              <p className="mt-2 text-sm font-semibold text-amber-800">{installation.accessNotes}</p>
+            </Card>
+          ) : null}
         </section>
 
         <section>
