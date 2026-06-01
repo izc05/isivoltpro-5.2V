@@ -15,6 +15,8 @@ export interface Installation {
   email?: string;
   gpsLat?: string;
   gpsLng?: string;
+  locations?: InstallationLocation[];
+  documents?: AppDocument[];
   notes?: string;
 }
 
@@ -31,6 +33,8 @@ export interface Asset {
   imageUrl?: string;
   gpsLat?: string;
   gpsLng?: string;
+  locationId?: string;
+  documents?: AppDocument[];
   notes?: string;
   brand?: string;
   model?: string;
@@ -50,6 +54,7 @@ export interface WorkOrder {
   assetId?: string;
   specialty: string;
   location: string;
+  locationId?: string;
   priority: string; // 'baja', 'media', 'alta', 'urgente'
   assignedTechnicianId: string;
   description: string;
@@ -73,6 +78,24 @@ export interface WorkOrderSignature {
   name: string;
   dataUrl: string;
   signedAt: string;
+}
+
+export interface InstallationLocation {
+  id: string;
+  name: string;
+  code?: string;
+  description?: string;
+  gpsLat?: string;
+  gpsLng?: string;
+  createdAt?: string;
+}
+
+export interface AppDocument {
+  id: string;
+  name: string;
+  type?: string;
+  dataUrl: string;
+  addedAt: string;
 }
 
 export interface Technician {

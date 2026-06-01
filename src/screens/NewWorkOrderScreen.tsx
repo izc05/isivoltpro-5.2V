@@ -84,6 +84,7 @@ export default function NewWorkOrderScreen({ installations, technicians, default
     type: "Correctiva",
     installationId: defaults.installationId || installations[0]?.id || "",
     specialty: defaults.specialty || "Electricidad",
+    locationId: defaults.locationId || "",
     location: defaults.location || "",
     technician: technicians[0]?.name || "",
     priority: "Media",
@@ -101,6 +102,7 @@ export default function NewWorkOrderScreen({ installations, technicians, default
     () => installations.find((installation) => installation.id === form.installationId) || installations[0],
     [form.installationId, installations]
   );
+  const installationLocations = selectedInstallation?.locations || [];
   const selectedPreset = presets.find((preset) => preset.type === form.type) || presets[1];
   const HeroIcon = selectedPreset.icon;
   const heroImage = selectedInstallation?.imageUrl || "";
@@ -110,11 +112,12 @@ export default function NewWorkOrderScreen({ installations, technicians, default
       ...current,
       installationId: defaults.installationId || current.installationId,
       specialty: defaults.specialty || current.specialty,
+      locationId: defaults.locationId || current.locationId,
       location: defaults.location || current.location,
       gpsLat: defaults.gpsLat || current.gpsLat,
       gpsLng: defaults.gpsLng || current.gpsLng,
     }));
-  }, [defaults.gpsLat, defaults.gpsLng, defaults.installationId, defaults.location, defaults.specialty]);
+  }, [defaults.gpsLat, defaults.gpsLng, defaults.installationId, defaults.location, defaults.locationId, defaults.specialty]);
 
   const update = (key: string, value: string) => {
     setError("");
@@ -147,6 +150,15 @@ export default function NewWorkOrderScreen({ installations, technicians, default
       return;
     }
     onCreate({ ...form, title: form.title.trim(), description: form.description.trim() });
+  };
+  const selectLocation = (locationId: string) => {
+    const selected = installationLocations.find((location: any) => location.id === locationId);
+    setError("");
+    setForm((current) => ({
+      ...current,
+      locationId,
+      location: selected?.name || current.location,
+    }));
   };
 
   const captureGps = () => {
@@ -252,6 +264,17 @@ export default function NewWorkOrderScreen({ installations, technicians, default
               </option>
             ))}
           </SelectField>
+
+          {installationLocations.length ? (
+            <SelectField label="Ubicacion QR" icon={MapPin} value={form.locationId} onChange={selectLocation}>
+              <option value="">Sin ubicacion QR</option>
+              {installationLocations.map((location: any) => (
+                <option key={location.id} value={location.id}>
+                  {location.name}{location.code ? ` · ${location.code}` : ""}
+                </option>
+              ))}
+            </SelectField>
+          ) : null}
 
           <div className="grid grid-cols-2 gap-3">
             <SelectField label="Especialidad" icon={Wrench} value={form.specialty} onChange={(value) => update("specialty", value)}>

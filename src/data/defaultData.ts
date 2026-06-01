@@ -30,6 +30,12 @@ export const defaultInstallations = [
     email: "mantenimiento@hospitalgeneral.es",
     status: "en_servicio",
     imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=520&q=80",
+    locations: [
+      { id: "loc-hos-pb-electrica", name: "Planta baja - sala electrica", code: "HOS-PB-ELEC", description: "Sala tecnica de cuadros principales" },
+      { id: "loc-hos-cubierta", name: "Cubierta - sala de maquinas", code: "HOS-CUB-CLIMA", description: "Equipos de climatizacion" },
+      { id: "loc-hos-p2-pasillo", name: "Planta 2 - Pasillo principal", code: "HOS-P2-PAS", description: "Zona hospitalizacion" },
+    ],
+    documents: [],
     notes: "Instalacion principal.",
   },
   {
@@ -44,6 +50,11 @@ export const defaultInstallations = [
     email: "servicios@centroespecialidades.es",
     status: "en_servicio",
     imageUrl: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=520&q=80",
+    locations: [
+      { id: "loc-ces-consultas", name: "Planta 1 - consultas externas", code: "CES-P1-CONS", description: "Zona de consultas" },
+      { id: "loc-ces-espera", name: "Planta baja - sala de espera", code: "CES-PB-ESP", description: "Sala de espera principal" },
+    ],
+    documents: [],
     notes: "",
   },
   {
@@ -58,6 +69,11 @@ export const defaultInstallations = [
     email: "direccion@residenciasanjose.es",
     status: "mantenimiento",
     imageUrl: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=520&q=80",
+    locations: [
+      { id: "loc-res-bombas", name: "Planta baja - cuarto de bombas", code: "RES-PB-BOMB", description: "Grupo de presion" },
+      { id: "loc-res-recepcion", name: "Recepcion", code: "RES-REC", description: "Acceso principal y central PCI" },
+    ],
+    documents: [],
     notes: "",
   },
   {
@@ -72,6 +88,11 @@ export const defaultInstallations = [
     email: "deportes@municipal.es",
     status: "en_servicio",
     imageUrl: "",
+    locations: [
+      { id: "loc-pol-p1", name: "Planta 1", code: "POL-P1", description: "Pasillos y BIE" },
+      { id: "loc-pol-aseos", name: "Planta 1 - aseos", code: "POL-P1-ASEOS", description: "Aseos publicos" },
+    ],
+    documents: [],
     notes: "",
   },
   {
@@ -86,12 +107,16 @@ export const defaultInstallations = [
     email: "secretaria@colegiopublico.es",
     status: "en_servicio",
     imageUrl: "",
+    locations: [
+      { id: "loc-col-gimnasio", name: "Gimnasio", code: "COL-GIM", description: "Alumbrado emergencia gimnasio" },
+    ],
+    documents: [],
     notes: "",
   },
 ].map((item) => ({ ...item, createdAt, updatedAt: createdAt }));
 
 export const defaultAssets = [
-  { id: "asset-1", installationId: "inst-1", name: "Cuadro general BT", code: "HOS-CGBT-01", location: "Planta baja - sala electrica", specialty: "electricidad", brand: "Schneider", model: "Prisma", serialNumber: "BT-001", criticality: "alta", status: "activo", imageUrl: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=520&q=80", notes: "" },
+  { id: "asset-1", installationId: "inst-1", name: "Cuadro general BT", code: "HOS-CGBT-01", locationId: "loc-hos-pb-electrica", location: "Planta baja - sala electrica", specialty: "electricidad", brand: "Schneider", model: "Prisma", serialNumber: "BT-001", criticality: "alta", status: "activo", imageUrl: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=520&q=80", documents: [], notes: "" },
   { id: "asset-2", installationId: "inst-1", name: "Climatizador UTA-01", code: "HOS-UTA-01", location: "Cubierta", specialty: "climatizacion", brand: "Carrier", model: "UTA 4500", serialNumber: "UTA-4500-21", criticality: "media", status: "en_revision", imageUrl: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?auto=format&fit=crop&w=520&q=80", notes: "" },
   { id: "asset-3", installationId: "inst-3", name: "Grupo de presion", code: "RES-GP-01", location: "Planta baja - cuarto de bombas", specialty: "fontaneria", brand: "Grundfos", model: "Hydro MPC", serialNumber: "GP-774", criticality: "alta", status: "activo", imageUrl: "https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?auto=format&fit=crop&w=520&q=80", notes: "" },
   { id: "asset-4", installationId: "inst-4", name: "BIE planta 1", code: "POL-BIE-01", location: "Planta 1", specialty: "pci", brand: "Aguilera", model: "BIE 25", serialNumber: "BIE-25-09", criticality: "media", status: "activo", imageUrl: "https://images.unsplash.com/photo-1602265687381-6c88c42a188f?auto=format&fit=crop&w=520&q=80", notes: "" },

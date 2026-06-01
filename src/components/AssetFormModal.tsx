@@ -1,8 +1,8 @@
 import type React from "react";
-import { Check, ClipboardList, Cpu, Image, MapPin, Tag, X } from "lucide-react";
+import { Check, ClipboardList, Cpu, FileText, Image, MapPin, Tag, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import Button from "./Button";
-import { fileToDataUrl } from "../utils/files";
+import { fileToDataUrl, fileToDocument } from "../utils/files";
 
 export const ASSET_SPECIALTIES = [
   { value: "electricidad", label: "Electricidad" },
@@ -24,8 +24,10 @@ const EMPTY_FORM = {
   code: "",
   specialty: "general",
   location: "",
+  locationId: "",
   status: "Operativo",
   imageUrl: "",
+  documents: [],
   notes: "",
 };
 
@@ -36,8 +38,10 @@ function getInitialForm(asset) {
     code: asset.code || "",
     specialty: asset.specialty || "general",
     location: asset.location || "",
+    locationId: asset.locationId || "",
     status: asset.status || "Operativo",
     imageUrl: asset.imageUrl || "",
+    documents: asset.documents || [],
     notes: asset.notes || "",
   };
 }
@@ -80,7 +84,7 @@ function SelectField({ label, value, onChange, options }) {
   );
 }
 
-export default function AssetFormModal({ asset, onClose, onSave }) {
+export default function AssetFormModal({ asset, locations = [], onClose, onSave }: any) {
   const [form, setForm] = useState(() => getInitialForm(asset));
   const isEditing = Boolean(asset?.id);
 
@@ -95,6 +99,24 @@ export default function AssetFormModal({ asset, onClose, onSave }) {
     if (!file) return;
     update("imageUrl", await fileToDataUrl(file));
     event.target.value = "";
+  };
+  const addDocuments = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+    const docs = await Promise.all(files.map(fileToDocument));
+    update("documents", [...(form.documents || []), ...docs]);
+    event.target.value = "";
+  };
+  const deleteDocument = (id: string) => {
+    update("documents", (form.documents || []).filter((document: any) => document.id !== id));
+  };
+  const selectLocation = (locationId: string) => {
+    const selected = locations.find((location: any) => location.id === locationId);
+    setForm((current: any) => ({
+      ...current,
+      locationId,
+      location: selected?.name || current.location,
+    }));
   };
 
   const submit = (event) => {
@@ -129,12 +151,42 @@ export default function AssetFormModal({ asset, onClose, onSave }) {
             <SelectField label="Estado" value={form.status} onChange={(value) => update("status", value)} options={ASSET_STATUSES} />
           </div>
           <SelectField label="Especialidad" value={form.specialty} onChange={(value) => update("specialty", value)} options={ASSET_SPECIALTIES} />
+          {locations.length ? (
+            <SelectField
+              label="Ubicacion QR"
+              value={form.locationId}
+              onChange={selectLocation}
+              options={[{ value: "", label: "Sin ubicacion QR" }, ...locations.map((location: any) => ({ value: location.id, label: `${location.name}${location.code ? ` · ${location.code}` : ""}` }))]}
+            />
+          ) : null}
           <TextField label="Ubicacion" icon={MapPin} value={form.location} placeholder="Ej: Cuarto de calderas" required onChange={(value) => update("location", value)} />
           <TextField label="Imagen URL" icon={Image} value={form.imageUrl} placeholder="https://..." onChange={(value) => update("imageUrl", value)} />
           <label className="grid min-h-12 cursor-pointer place-items-center rounded-2xl border border-dashed border-cyan-300 bg-cyan-50 px-4 text-sm font-black text-primary">
             Subir foto del activo
             <input className="hidden" type="file" accept="image/*" onChange={uploadPhoto} />
           </label>
+
+          <section className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h3 className="text-lg font-black text-slate-800">Documentos del activo</h3>
+              <label className="cursor-pointer rounded-2xl bg-white px-3 py-2 text-sm font-black text-primary shadow-soft">
+                Añadir
+                <input className="hidden" type="file" multiple onChange={addDocuments} />
+              </label>
+            </div>
+            <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl bg-white">
+              {(form.documents || []).map((document: any) => (
+                <div key={document.id} className="grid grid-cols-[30px_minmax(0,1fr)_36px] items-center gap-2 px-3 py-3">
+                  <FileText className="text-primary" size={18} />
+                  <a className="truncate text-sm font-black text-primaryDark" href={document.dataUrl} download={document.name}>{document.name}</a>
+                  <button type="button" className="grid h-8 w-8 place-items-center rounded-xl bg-red-50 text-red-700" onClick={() => deleteDocument(document.id)} aria-label="Eliminar documento">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+              {!form.documents?.length ? <p className="px-3 py-4 text-center text-sm font-bold text-slate-500">Sin documentos adjuntos.</p> : null}
+            </div>
+          </section>
           
           <label className="block">
             <span className="mb-1.5 block text-sm font-black text-slate-700">Observaciones y datos tecnicos</span>

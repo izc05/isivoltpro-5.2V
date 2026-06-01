@@ -66,10 +66,17 @@ export default function QrSheet({ installation, assets, workOrders, onClose }: a
         if (!byName.has(key)) byName.set(key, { name: item.name.trim(), sources: new Set() });
         byName.get(key).sources.add(item.source);
       });
-    return Array.from(byName.values()).map((item: any) => ({
+    const derived = Array.from(byName.values()).map((item: any) => ({
       ...item,
       sourceLabel: Array.from(item.sources).join(" / "),
     }));
+    const defined = (installation.locations || []).map((location: any) => ({
+      ...location,
+      sourceLabel: "Ubicacion QR",
+      defined: true,
+    }));
+    const definedNames = new Set(defined.map((location: any) => String(location.name).toLowerCase()));
+    return [...defined, ...derived.filter((location: any) => !definedNames.has(String(location.name).toLowerCase()))];
   }, [assets, workOrders]);
 
   return (
@@ -94,11 +101,11 @@ export default function QrSheet({ installation, assets, workOrders, onClose }: a
           />
           {locations.map((location: any) => (
             <QrItem
-              key={location.name}
+              key={location.id || location.name}
               title={location.name}
-              subtitle={`${installation.name} · ${location.sourceLabel}`}
+              subtitle={`${installation.name} · ${location.code || location.sourceLabel}`}
               fileName={`qr-${installation.name}-${location.name}`}
-              payload={buildAppUrl(`/instalaciones/${installation.id}?ubicacion=${encodeURIComponent(location.name)}`)}
+              payload={buildAppUrl(location.id ? `/instalaciones/${installation.id}?ubicacionId=${encodeURIComponent(location.id)}` : `/instalaciones/${installation.id}?ubicacion=${encodeURIComponent(location.name)}`)}
             />
           ))}
           {assets.map((asset: any) => (

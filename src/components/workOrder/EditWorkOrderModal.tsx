@@ -25,6 +25,7 @@ export default function EditWorkOrderModal({ order, installations, technicians, 
     status: order.status || "Pendiente",
     installationId: order.installationId || installations[0]?.id || "",
     specialty: order.specialty || "Mecanica",
+    locationId: order.locationId || "",
     location: order.location || "",
     priority: order.priority || "Media",
     technician: order.assignedTechnicianId || "",
@@ -79,6 +80,16 @@ export default function EditWorkOrderModal({ order, installations, technicians, 
         gpsLng: String(position.coords.longitude),
       }));
     });
+  };
+  const selectedInstallation = installations.find((inst: any) => inst.id === form.installationId);
+  const locations = selectedInstallation?.locations || [];
+  const selectLocation = (locationId: string) => {
+    const selected = locations.find((location: any) => location.id === locationId);
+    setForm((current) => ({
+      ...current,
+      locationId,
+      location: selected?.name || current.location,
+    }));
   };
 
   const save = () => {
@@ -154,6 +165,16 @@ export default function EditWorkOrderModal({ order, installations, technicians, 
             <span className="mb-1 block font-black text-slate-700">Ubicacion</span>
             <input className="min-h-12 w-full rounded-2xl border border-slate-200 px-4 font-bold outline-none focus:border-accent" value={form.location} onChange={(e) => update("location", e.target.value)} />
           </label>
+
+          {locations.length ? (
+            <label className="block">
+              <span className="mb-1 block font-black text-slate-700">Ubicacion QR</span>
+              <select className="min-h-12 w-full rounded-2xl border border-slate-200 bg-white px-4 font-bold text-slate-900 outline-none focus:border-accent" value={form.locationId} onChange={(e) => selectLocation(e.target.value)}>
+                <option value="">Sin ubicacion QR</option>
+                {locations.map((location: any) => <option key={location.id} value={location.id}>{location.name}{location.code ? ` · ${location.code}` : ""}</option>)}
+              </select>
+            </label>
+          ) : null}
 
           <button type="button" className="flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-cyan-300 bg-cyan-50 px-4 font-black text-primary" onClick={captureGps}>
             <LocateFixed size={20} />

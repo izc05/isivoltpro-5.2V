@@ -147,10 +147,15 @@ function InstallationRoute({
   const { id } = useParams();
   const routeLocation = useLocation();
   const search = new URLSearchParams(routeLocation.search);
-  const highlightedLocation = search.get("ubicacion") || "";
+  const highlightedLocationId = search.get("ubicacionId") || "";
+  const highlightedLocationByName = search.get("ubicacion") || "";
   const highlightedAssetId = search.get("activo") || "";
   const installation = installations.find((item: DisplayInstallation) => item.id === id);
   if (!installation) return <Navigate to="/instalaciones" replace />;
+  const matchedLocation = highlightedLocationId
+    ? installation.locations?.find((location: any) => location.id === highlightedLocationId)
+    : null;
+  const highlightedLocation = matchedLocation?.name || highlightedLocationByName;
 
   return (
     <InstallationDetailScreen
@@ -164,6 +169,7 @@ function InstallationRoute({
       onOpenWorkOrder={onOpenWorkOrder}
       onCreateWorkOrder={onCreateWorkOrder}
       highlightedLocation={highlightedLocation}
+      highlightedLocationId={highlightedLocationId}
       highlightedAssetId={highlightedAssetId}
     />
   );

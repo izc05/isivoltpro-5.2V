@@ -1,4 +1,5 @@
-import { BriefcaseBusiness, CalendarDays, ChevronRight, MapPin, PackagePlus, Phone, Plus, QrCode, ShieldCheck, Trash2, Edit3, User, Wrench } from "lucide-react";
+import type React from "react";
+import { BriefcaseBusiness, CalendarDays, ChevronRight, FileText, MapPin, PackagePlus, Phone, Plus, QrCode, ShieldCheck, Trash2, Edit3, User, Wrench } from "lucide-react";
 import { useState } from "react";
 import Button from "../components/Button";
 import Card from "../components/Card";
@@ -10,6 +11,7 @@ import QrSheet from "../components/installation/QrSheet";
 import SpecialtySheet, { specialtyIcons, specialtyTones, AssetVisual } from "../components/installation/SpecialtySheet";
 import OrdersSheet from "../components/installation/OrdersSheet";
 import { formatDateTime } from "../utils/dates";
+import { fileToDocument } from "../utils/files";
 
 const summaryTones: any = {
   Activos: "bg-blue-100 text-blue-700",
@@ -18,12 +20,13 @@ const summaryTones: any = {
   "OT abiertas": "bg-purple-100 text-purple-700",
 };
 
-export default function InstallationDetailScreen({ installation, assets = [], workOrders = [], highlightedLocation = "", highlightedAssetId = "", onBack, onSaveInstallation, onDeleteInstallation, onSaveAsset, onCreateWorkOrder, onOpenWorkOrder }: any) {
+export default function InstallationDetailScreen({ installation, assets = [], workOrders = [], highlightedLocation = "", highlightedLocationId = "", highlightedAssetId = "", onBack, onSaveInstallation, onDeleteInstallation, onSaveAsset, onCreateWorkOrder, onOpenWorkOrder }: any) {
   const [editing, setEditing] = useState(false);
   const [editingAsset, setEditingAsset] = useState<any>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [ordersOpen, setOrdersOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [newLocation, setNewLocation] = useState({ name: "", code: "", description: "" });
   if (!installation) return null;
 
   const saveInstallation = (form: any) => {
@@ -45,6 +48,39 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
     ? assets.filter((asset: any) => String(asset.location || "").toLowerCase() === highlightedLocation.toLowerCase())
     : [];
   const highlightedAsset = highlightedAssetId ? assets.find((asset: any) => asset.id === highlightedAssetId) : null;
+  const locations = installation.locations || [];
+  const documents = installation.documents || [];
+
+  const updateInstallationMeta = (patch: any) => {
+    onSaveInstallation(installation.id, patch);
+  };
+  const addLocation = () => {
+    const name = newLocation.name.trim();
+    if (!name) return;
+    const created = {
+      id: `loc-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name,
+      code: newLocation.code.trim(),
+      description: newLocation.description.trim(),
+      createdAt: new Date().toISOString(),
+    };
+    updateInstallationMeta({ locations: [...locations, created] });
+    setNewLocation({ name: "", code: "", description: "" });
+  };
+  const deleteLocation = (id: string) => {
+    if (!window.confirm("¿Eliminar esta ubicacion? Los activos y OT conservaran el texto de ubicacion.")) return;
+    updateInstallationMeta({ locations: locations.filter((location: any) => location.id !== id) });
+  };
+  const addDocuments = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (!files.length) return;
+    const nextDocs = await Promise.all(files.map(fileToDocument));
+    updateInstallationMeta({ documents: [...documents, ...nextDocs] });
+    event.target.value = "";
+  };
+  const deleteDocument = (id: string) => {
+    updateInstallationMeta({ documents: documents.filter((document: any) => document.id !== id) });
+  };
 
   return (
     <>
@@ -86,8 +122,8 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
         </Card>
 
         <div className="grid grid-cols-2 gap-3">
-          <Button icon={Plus} onClick={() => onCreateWorkOrder(installation.id, highlightedLocation ? { location: highlightedLocation } : {})}>Crear OT</Button>
-          <Button icon={PackagePlus} variant="outline" onClick={() => setEditingAsset({})}>Añadir activo</Button>
+          <Button icon={Plus} onClick={() => onCreateWorkOrder(installation.id, highlightedLocation ? { location: highlightedLocation, locationId: highlightedLocationId } : {})}>Crear OT</Button>
+          <Button icon={PackagePlus} variant="outline" onClick={() => setEditingAsset(highlightedLocation ? { location: highlightedLocation, locationId: highlightedLocationId } : {})}>Añadir activo</Button>
           <Button icon={ShieldCheck} variant="dark" onClick={() => setSelectedSpecialty("Todos")}>Ver activos</Button>
           <Button icon={BriefcaseBusiness} variant="outline" onClick={() => setOrdersOpen(true)}>Ver ordenes</Button>
           <Button icon={QrCode} variant="outline" className="col-span-2" onClick={() => setQrOpen(true)}>QR instalacion y ubicaciones</Button>
@@ -140,6 +176,57 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
             </Card>
           ))}
         </div>
+
+        <section>
+          <div className="mb-3 flex items-end justify-between px-1">
+            <h2 className="text-lg font-black">Ubicaciones QR</h2>
+            <span className="text-sm font-black text-primary">{locations.length} zonas</span>
+          </div>
+          <Card className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-[1fr_120px]">
+              <input className="min-h-12 rounded-2xl border border-slate-200 px-4 font-bold outline-none focus:border-accent" placeholder="Nombre de ubicacion" value={newLocation.name} onChange={(event) => setNewLocation((current) => ({ ...current, name: event.target.value }))} />
+              <input className="min-h-12 rounded-2xl border border-slate-200 px-4 font-bold outline-none focus:border-accent" placeholder="Codigo" value={newLocation.code} onChange={(event) => setNewLocation((current) => ({ ...current, code: event.target.value }))} />
+              <input className="min-h-12 rounded-2xl border border-slate-200 px-4 font-bold outline-none focus:border-accent md:col-span-2" placeholder="Descripcion breve" value={newLocation.description} onChange={(event) => setNewLocation((current) => ({ ...current, description: event.target.value }))} />
+              <Button icon={Plus} className="md:col-span-2" onClick={addLocation}>Crear ubicacion</Button>
+            </div>
+            <div className="divide-y divide-slate-100 overflow-hidden rounded-3xl border border-slate-100">
+              {locations.map((location: any) => (
+                <div key={location.id} className="grid grid-cols-[minmax(0,1fr)_44px] gap-3 bg-white px-4 py-3">
+                  <div className="min-w-0">
+                    <strong className="block truncate text-primaryDark">{location.name}</strong>
+                    <p className="mt-1 text-sm font-semibold text-slate-500">{location.code || "Sin codigo"} · {location.description || "Ubicacion de la instalacion"}</p>
+                  </div>
+                  <button className="grid h-10 w-10 place-items-center rounded-2xl bg-red-50 text-red-700" onClick={() => deleteLocation(location.id)} aria-label="Eliminar ubicacion">
+                    <Trash2 size={18} />
+                  </button>
+                </div>
+              ))}
+              {!locations.length ? <p className="px-4 py-5 text-center text-sm font-bold text-slate-500">Crea ubicaciones para generar QR y asociarlas a activos/OT.</p> : null}
+            </div>
+          </Card>
+        </section>
+
+        <section>
+          <div className="mb-3 flex items-end justify-between px-1">
+            <h2 className="text-lg font-black">Documentos</h2>
+            <label className="cursor-pointer rounded-2xl bg-white px-3 py-2 text-sm font-black text-primary shadow-soft">
+              Añadir
+              <input className="hidden" type="file" multiple onChange={addDocuments} />
+            </label>
+          </div>
+          <Card className="divide-y divide-slate-100 p-0">
+            {documents.map((document: any) => (
+              <div key={document.id} className="grid grid-cols-[36px_minmax(0,1fr)_44px] items-center gap-3 px-5 py-4">
+                <FileText className="text-primary" size={22} />
+                <a className="min-w-0 truncate font-black text-primaryDark" href={document.dataUrl} download={document.name}>{document.name}</a>
+                <button className="grid h-10 w-10 place-items-center rounded-2xl bg-red-50 text-red-700" onClick={() => deleteDocument(document.id)} aria-label="Eliminar documento">
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            ))}
+            {!documents.length ? <p className="px-5 py-6 text-sm font-semibold text-slate-500">Sin documentos adjuntos en esta instalacion.</p> : null}
+          </Card>
+        </section>
 
         <section>
           <div className="mb-3 flex items-end justify-between px-1">
@@ -230,7 +317,8 @@ export default function InstallationDetailScreen({ installation, assets = [], wo
         {editing ? <InstallationFormModal installation={installation} onClose={() => setEditing(false)} onSave={saveInstallation} /> : null}
         {editingAsset ? (
           <AssetFormModal
-            asset={editingAsset?.id ? editingAsset : null}
+            asset={editingAsset || null}
+            locations={locations}
             onClose={() => setEditingAsset(null)}
             onSave={(form: any) => {
               onSaveAsset(editingAsset?.id || null, { ...form, installationId: installation.id });
